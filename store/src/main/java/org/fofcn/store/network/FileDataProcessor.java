@@ -1,18 +1,17 @@
 package org.fofcn.store.network;
 
-import com.github.futurefs.netty.FileDataProtos.FileReply;
-import com.github.futurefs.netty.NettyProtos.NettyReply;
-import com.github.futurefs.netty.NettyProtos.NettyRequest;
-import com.github.futurefs.netty.enums.ResponseCode;
-import com.github.futurefs.netty.netty.NetworkCommand;
-import com.github.futurefs.netty.processor.NettyRequestProcessor;
-import com.github.futurefs.store.block.BlockFile;
-import com.github.futurefs.store.block.FileBlock;
-import com.github.futurefs.store.block.FileHeader;
-import com.github.futurefs.store.block.FileTailor;
-import com.github.futurefs.store.common.AppendResult;
+import com.fofcn.trivialfs.netty.FileDataProtos;
+import com.fofcn.trivialfs.netty.NettyProtos;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
+import org.fofcn.netty.enums.ResponseCode;
+import org.fofcn.netty.netty.NetworkCommand;
+import org.fofcn.netty.processor.NettyRequestProcessor;
+import org.fofcn.store.block.BlockFile;
+import org.fofcn.store.block.FileBlock;
+import org.fofcn.store.block.FileHeader;
+import org.fofcn.store.block.FileTailor;
+import org.fofcn.store.common.AppendResult;
 
 import java.util.Random;
 
@@ -33,8 +32,8 @@ public class FileDataProcessor implements NettyRequestProcessor {
 
     @Override
     public NetworkCommand processRequest(ChannelHandlerContext ctx, NetworkCommand request) throws Exception {
-        NettyRequest body = NettyRequest.parseFrom(request.getBody());
-        if (NettyRequest.RequestCase.FILEREQUEST.equals(body.getRequestCase())) {
+        NettyProtos.NettyRequest body = NettyProtos.NettyRequest.parseFrom(request.getBody());
+        if (NettyProtos.NettyRequest.RequestCase.FILEREQUEST.equals(body.getRequestCase())) {
             log.info("file upload request..");
         }
 
@@ -49,19 +48,19 @@ public class FileDataProcessor implements NettyRequestProcessor {
         fileBlock.setBody(body.getFileRequest().getData().toByteArray());
         fileBlock.setTailor(tailor);
         AppendResult result = fileData.append(fileBlock);
-        FileReply fileReply;
+        FileDataProtos.FileReply fileReply;
         if (result.getOffset() != -1L) {
-            fileReply = FileReply.newBuilder()
+            fileReply = FileDataProtos.FileReply.newBuilder()
                     .setSuccess(true)
                     .setKey(header.getKey())
                     .build();
         } else {
-            fileReply = FileReply.newBuilder()
+            fileReply = FileDataProtos.FileReply.newBuilder()
                     .setSuccess(false)
                     .build();
         }
 
-        NettyReply reply = NettyReply.newBuilder().setFileReply(fileReply).build();
+        NettyProtos.NettyReply reply = NettyProtos.NettyReply.newBuilder().setFileReply(fileReply).build();
         return NetworkCommand.createResponseCommand(ResponseCode.SUCCESS.getCode(), reply.toByteArray());
     }
 }

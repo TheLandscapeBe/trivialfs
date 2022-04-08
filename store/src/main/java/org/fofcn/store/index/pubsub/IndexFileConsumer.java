@@ -1,10 +1,10 @@
 package org.fofcn.store.index.pubsub;
 
-import com.github.futurefs.store.block.pubsub.BlockFileMessage;
-import com.github.futurefs.store.index.IndexNode;
-import com.github.futurefs.store.index.IndexTable;
-import com.github.futurefs.store.pubsub.Consumer;
-import com.github.futurefs.store.pubsub.Message;
+import org.fofcn.store.block.pubsub.BlockFileMessage;
+import org.fofcn.store.index.IndexNode;
+import org.fofcn.store.index.IndexTable;
+import org.fofcn.store.pubsub.Consumer;
+import org.fofcn.store.pubsub.Message;
 
 /**
  * 块文件消息消费者

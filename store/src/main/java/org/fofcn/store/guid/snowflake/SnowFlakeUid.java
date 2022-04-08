@@ -1,12 +1,12 @@
 package org.fofcn.store.guid.snowflake;
 
-import com.github.futurefs.store.guid.UidGenerator;
 import com.xfvape.uid.buffer.RejectedPutBufferHandler;
 import com.xfvape.uid.buffer.RejectedTakeBufferHandler;
 import com.xfvape.uid.buffer.RingBuffer;
 import com.xfvape.uid.impl.CachedUidGenerator;
 import com.xfvape.uid.worker.WorkerIdAssigner;
 import lombok.extern.slf4j.Slf4j;
+import org.fofcn.store.guid.UidGenerator;
 
 /**
  * 雪花Uid

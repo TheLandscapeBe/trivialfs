@@ -1,12 +1,12 @@
 package org.fofcn.store.network;
 
-import com.github.futurefs.netty.NetworkServer;
-import com.github.futurefs.netty.config.NettyServerConfig;
-import com.github.futurefs.netty.netty.NettyNetworkServer;
-import com.github.futurefs.netty.network.RequestCode;
-import com.github.futurefs.netty.thread.PoolHelper;
-import com.github.futurefs.store.block.BlockFile;
 import lombok.extern.slf4j.Slf4j;
+import org.fofcn.common.network.RequestCode;
+import org.fofcn.common.thread.PoolHelper;
+import org.fofcn.netty.NetworkServer;
+import org.fofcn.netty.config.NettyServerConfig;
+import org.fofcn.netty.netty.NettyNetworkServer;
+import org.fofcn.store.block.BlockFile;
 
 import java.util.concurrent.ThreadPoolExecutor;
 

@@ -1,8 +1,8 @@
 package org.fofcn.store.index;
 
-import com.github.futurefs.store.common.Codec;
-import com.github.futurefs.store.common.constant.StoreConstant;
 import lombok.Data;
+import org.fofcn.store.common.Codec;
+import org.fofcn.store.common.constant.StoreConstant;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;

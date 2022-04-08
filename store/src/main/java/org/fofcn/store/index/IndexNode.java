@@ -1,7 +1,7 @@
 package org.fofcn.store.index;
 
-import com.github.futurefs.store.common.Codec;
 import lombok.Data;
+import org.fofcn.store.common.Codec;
 
 import java.nio.ByteBuffer;
 

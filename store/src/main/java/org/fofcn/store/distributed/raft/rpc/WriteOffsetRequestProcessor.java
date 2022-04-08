@@ -2,7 +2,7 @@ package org.fofcn.store.distributed.raft.rpc;
 
 import com.alipay.sofa.jraft.rpc.RpcContext;
 import com.alipay.sofa.jraft.rpc.RpcProcessor;
-import com.github.futurefs.netty.OffsetProtos;
+import com.fofcn.trivialfs.netty.OffsetProtos;
 
 /**
  * 写入偏移请求处理器

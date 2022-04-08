@@ -1,13 +1,13 @@
 package org.fofcn.store.index;
 
-import com.github.futurefs.netty.R;
-import com.github.futurefs.netty.RWrapper;
-import com.github.futurefs.store.common.AppendResult;
-import com.github.futurefs.store.common.BaseFile;
-import com.github.futurefs.store.common.constant.StoreConstant;
-import com.github.futurefs.store.index.pubsub.IndexFileConsumer;
-import com.github.futurefs.store.pubsub.Broker;
 import org.apache.commons.lang3.ObjectUtils;
+import org.fofcn.common.R;
+import org.fofcn.common.RWrapper;
+import org.fofcn.store.common.AppendResult;
+import org.fofcn.store.common.BaseFile;
+import org.fofcn.store.common.constant.StoreConstant;
+import org.fofcn.store.index.pubsub.IndexFileConsumer;
+import org.fofcn.store.pubsub.Broker;
 
 import java.io.File;
 import java.io.IOException;

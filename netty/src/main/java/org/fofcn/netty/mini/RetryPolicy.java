@@ -1,8 +1,8 @@
 package org.fofcn.netty.mini;
 
-import com.github.futurefs.netty.mini.function.Prediction;
-import com.github.futurefs.netty.mini.function.PredictionTuple;
-import com.github.futurefs.netty.mini.function.Predictions;
+import org.fofcn.netty.mini.function.Prediction;
+import org.fofcn.netty.mini.function.PredictionTuple;
+import org.fofcn.netty.mini.function.Predictions;
 
 import java.util.ArrayList;
 import java.util.Arrays;

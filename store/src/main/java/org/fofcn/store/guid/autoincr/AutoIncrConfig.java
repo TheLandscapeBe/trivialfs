@@ -1,6 +1,7 @@
 package org.fofcn.store.guid.autoincr;
 
-import com.github.futurefs.store.guid.UidConfig;
+
+import org.fofcn.store.guid.UidConfig;
 
 /**
  * 自增配置

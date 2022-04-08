@@ -2,7 +2,7 @@ package org.fofcn.store.distributed.raft.rpc;
 
 import com.alipay.sofa.jraft.rpc.RpcServer;
 import com.alipay.sofa.jraft.util.RpcFactoryHelper;
-import com.github.futurefs.netty.OffsetProtos;
+import com.fofcn.trivialfs.netty.OffsetProtos;
 import com.google.protobuf.Message;
 import lombok.extern.slf4j.Slf4j;
 

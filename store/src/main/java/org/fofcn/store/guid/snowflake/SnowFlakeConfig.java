@@ -1,7 +1,7 @@
 package org.fofcn.store.guid.snowflake;
 
-import com.github.futurefs.store.guid.UidConfig;
 import lombok.Data;
+import org.fofcn.store.guid.UidConfig;
 
 /**
  * 雪花算法配置

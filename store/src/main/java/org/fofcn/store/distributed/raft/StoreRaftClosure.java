@@ -1,7 +1,7 @@
 package org.fofcn.store.distributed.raft;
 
 import com.alipay.sofa.jraft.Closure;
-import com.github.futurefs.netty.OffsetProtos;
+import com.fofcn.trivialfs.netty.OffsetProtos;
 
 /**
  * TODO 文件说明

@@ -1,8 +1,9 @@
 package org.fofcn.store.distributed;
 
-import com.github.futurefs.store.block.BlockFile;
-import com.github.futurefs.store.config.ClusterConfig;
-import com.github.futurefs.store.pubsub.Broker;
+
+import org.fofcn.store.block.BlockFile;
+import org.fofcn.store.config.ClusterConfig;
+import org.fofcn.store.pubsub.Broker;
 
 /**
  * 集群工厂类

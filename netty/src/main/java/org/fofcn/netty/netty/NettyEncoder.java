@@ -1,10 +1,10 @@
 
 package org.fofcn.netty.netty;
 
-import com.github.futurefs.netty.util.NetworkUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+import org.fofcn.netty.util.NetworkUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

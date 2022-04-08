@@ -1,9 +1,10 @@
 package org.fofcn.store.guid;
 
-import com.github.futurefs.store.guid.autoincr.AutoIncrConfig;
-import com.github.futurefs.store.guid.autoincr.AutoIncrUid;
-import com.github.futurefs.store.guid.snowflake.SnowFlakeConfig;
-import com.github.futurefs.store.guid.snowflake.SnowFlakeUid;
+
+import org.fofcn.store.guid.autoincr.AutoIncrConfig;
+import org.fofcn.store.guid.autoincr.AutoIncrUid;
+import org.fofcn.store.guid.snowflake.SnowFlakeConfig;
+import org.fofcn.store.guid.snowflake.SnowFlakeUid;
 
 /**
  * Uid工厂

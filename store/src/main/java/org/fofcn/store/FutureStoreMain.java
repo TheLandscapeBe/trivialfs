@@ -1,8 +1,8 @@
 package org.fofcn.store;
 
-import com.github.futurefs.netty.YamlUtil;
-import com.github.futurefs.store.config.StoreConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.fofcn.common.YamlUtil;
+import org.fofcn.store.config.StoreConfig;
 
 import java.io.File;
 import java.io.FileInputStream;
