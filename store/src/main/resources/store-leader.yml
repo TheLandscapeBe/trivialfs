@@ -1,0 +1,68 @@
+trickyfs:
+  # 主存储目录
+  blockPath: trickyfs/block
+  # 索引存储目录
+  indexPath: trickyfs/index
+  # bucket服务
+  buckets: trickyfs-a
+
+  # 刷盘配置
+  flushConfig:
+    strategy: ASYNC
+    flushThreshold: 100
+    bytes: 10485760
+
+  # TCP服务端配置
+  serverConfig:
+    host: 127.0.0.1
+    listenPort: 60000
+    serverWorkerThreads: 8
+    serverSelectorThreads: 3
+    serverChannelMaxIdleTimeSeconds: 120
+    serverSocketSndBufSize: 65535
+    serverSocketRcvBufSize: 65535
+    useTLS: false
+    tlsFile:
+  # TCP客户端配置
+  clientConfig:
+    clientWorkerThreads: 4
+    connectTimeoutMillis: 30000
+    channelNotActiveInterval: 60000
+    clientChannelMaxIdleTimeSeconds: 120
+    clientSocketSndBufSize: 65535
+    clientSocketRcvBufSize: 65535
+    queueCapacity: 1000
+    useTLS: false
+    tlsFile:
+
+  # 集群配置
+  clusterConfig:
+    mode: 1
+    peerId: 1
+    role: 1
+    address: 172.0.0.1:60001
+#    peers:
+#      - 2:172.0.0.1:60002
+#      - 3:172.0.0.1:60003
+    rpcConfig:
+      rpcFramework: NETTY
+      rpcClientConfig:
+        clientWorkerThreads: 4
+        connectTimeoutMillis: 30000
+        channelNotActiveInterval: 60000
+        clientChannelMaxIdleTimeSeconds: 120
+        clientSocketSndBufSize: 65535
+        clientSocketRcvBufSize: 65535
+        queueCapacity: 1000
+        useTLS: false
+        tlsFile:
+      rpcServerConfig:
+        host: 127.0.0.1
+        listenPort: 60001
+        serverWorkerThreads: 8
+        serverSelectorThreads: 3
+        serverChannelMaxIdleTimeSeconds: 120
+        serverSocketSndBufSize: 65535
+        serverSocketRcvBufSize: 65535
+        useTLS: false
+        tlsFile:

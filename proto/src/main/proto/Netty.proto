@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option java_package = "com.fofcn.trivialfs.netty";
+option java_outer_classname = "NettyProtos";
+option java_generate_equals_and_hash = true;
+package proto.netty;
+
+import "Bucket.proto";
+import "Store.proto";
+import "FileData.proto";
+import "Offset.proto";
+import "Cluster.proto";
+
+message NettyRequest {
+  oneof Request {
+      proto.bucket.BucketRequest bucketRequest = 1;
+      proto.store.NodeRequest nodeRequest = 2;
+      proto.file.FileRequest fileRequest = 3;
+      proto.offset.WriteOffsetRequest offsetRequest = 4;
+      proto.cluster.ClusterRequest clusterRequest = 5;
+  }
+}
+
+message NettyReply {
+  oneof Reply {
+    proto.bucket.BucketReply bucketReply = 1;
+    proto.store.NodeReply nodeReply = 2;
+    proto.file.FileReply fileReply = 3;
+    proto.offset.WriteOffsetReply offsetReply = 4;
+    proto.cluster.ClusterReply clusterReply = 5;
+  }
+}
