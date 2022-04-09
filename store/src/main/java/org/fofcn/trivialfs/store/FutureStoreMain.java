@@ -1,6 +1,7 @@
 package org.fofcn.trivialfs.store;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.fofcn.trivialfs.common.YamlUtil;
 import org.fofcn.trivialfs.store.config.StoreConfig;
 
@@ -38,7 +39,11 @@ public class FutureStoreMain {
             return;
         }
 
-        StoreConfig storeConfig = YamlUtil.readObject(in, StoreConfig.class, "trickyfs");
+        StoreConfig storeConfig = YamlUtil.readObject(in, StoreConfig.class, "trivialfs");
+        if (ObjectUtils.isEmpty(storeConfig)) {
+            log.error("config file parse error,please check config file.");
+            return;
+        }
         StoreController controller = new StoreController(storeConfig);
         controller.init();
         controller.start();

@@ -11,4 +11,7 @@
 
     <artifactId>bucket</artifactId>
 
+    <dependencies>
+
+    </dependencies>
 </project>

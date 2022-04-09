@@ -17,6 +17,7 @@
         <module>grpc</module>
         <module>proto</module>
         <module>web</module>
+        <module>rpc</module>
     </modules>
 
     <properties>

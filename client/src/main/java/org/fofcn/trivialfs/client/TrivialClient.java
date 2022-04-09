@@ -1,6 +1,6 @@
 package org.fofcn.trivialfs.client;
 
-import org.fofcn.trivialfs.common.exception.TrickyFsNetworkException;
+import org.fofcn.trivialfs.common.exception.TrivialFsNetworkException;
 
 import java.io.File;
 import java.io.InputStream;
@@ -11,7 +11,7 @@ import java.io.InputStream;
  * @author errorfatal89@gmail.com
  * @datetime 2022/03/29 FutureClientApi
  */
-public interface TrickyClient {
+public interface TrivialClient {
 
     /**
      * 写入文件
@@ -19,7 +19,7 @@ public interface TrickyClient {
      * @param content 文件内容
      * @return
      */
-    ApiResult write(String bucket, byte[] content) throws TrickyFsNetworkException;
+    ApiResult write(String bucket, byte[] content) throws TrivialFsNetworkException;
 
     /**
      * 写入文件

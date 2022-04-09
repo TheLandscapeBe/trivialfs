@@ -5,9 +5,9 @@ import com.fofcn.trivialfs.netty.NettyProtos;
 import com.google.protobuf.ByteString;
 import org.fofcn.trivialfs.client.ApiResult;
 import org.fofcn.trivialfs.client.ApiResultWrapper;
-import org.fofcn.trivialfs.client.TrickyClient;
+import org.fofcn.trivialfs.client.TrivialClient;
 import org.fofcn.trivialfs.client.rpc.RpcClient;
-import org.fofcn.trivialfs.common.exception.TrickyFsNetworkException;
+import org.fofcn.trivialfs.common.exception.TrivialFsNetworkException;
 import org.fofcn.trivialfs.common.network.RequestCode;
 
 import java.io.File;
@@ -19,16 +19,16 @@ import java.io.InputStream;
  * @author errorfatal89@gmail.com
  * @datetime 2022/03/29 12:13
  */
-public class TrickyClientImpl implements TrickyClient {
+public class TrivialClientImpl implements TrivialClient {
 
     private final RpcClient rpcClient;
 
-    public TrickyClientImpl(final RpcClient rpcClient) {
+    public TrivialClientImpl(final RpcClient rpcClient) {
         this.rpcClient = rpcClient;
     }
 
     @Override
-    public ApiResult write(String bucket, byte[] content) throws TrickyFsNetworkException {
+    public ApiResult write(String bucket, byte[] content) throws TrivialFsNetworkException {
         long fileKey = writeFile(content);
         return fileKey == -1L ? ApiResultWrapper.fail("") :
                 ApiResultWrapper.success(fileKey);
@@ -54,7 +54,7 @@ public class TrickyClientImpl implements TrickyClient {
         return null;
     }
 
-    private long writeFile(byte[] content) throws TrickyFsNetworkException {
+    private long writeFile(byte[] content) throws TrivialFsNetworkException {
         NettyProtos.NettyRequest request;
         FileDataProtos.FileRequest fileRequest = FileDataProtos.FileRequest.newBuilder()
                 .setData(ByteString.copyFrom(content))

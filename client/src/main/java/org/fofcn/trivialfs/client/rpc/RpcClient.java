@@ -3,7 +3,7 @@ package org.fofcn.trivialfs.client.rpc;
 import com.fofcn.trivialfs.netty.NettyProtos;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
-import org.fofcn.trivialfs.common.exception.TrickyFsNetworkException;
+import org.fofcn.trivialfs.common.exception.TrivialFsNetworkException;
 import org.fofcn.trivialfs.netty.NetworkClient;
 import org.fofcn.trivialfs.netty.config.NettyClientConfig;
 import org.fofcn.trivialfs.netty.exception.NetworkConnectException;
@@ -40,7 +40,7 @@ public class RpcClient {
      * @param request 请求
      * @return 结果
      */
-    public NettyProtos.NettyReply callSync(int requestCode, NettyProtos.NettyRequest request) throws TrickyFsNetworkException {
+    public NettyProtos.NettyReply callSync(int requestCode, NettyProtos.NettyRequest request) throws TrivialFsNetworkException {
         NetworkCommand networkCommand = NetworkCommand.createRequestCommand(requestCode, request.toByteArray());
         NetworkCommand response = null;
         try {
@@ -51,15 +51,15 @@ public class RpcClient {
 
             return null;
         } catch (InterruptedException e) {
-            throw new TrickyFsNetworkException(e);
+            throw new TrivialFsNetworkException(e);
         } catch (NetworkTimeoutException e) {
-            throw new TrickyFsNetworkException(e);
+            throw new TrivialFsNetworkException(e);
         } catch (NetworkSendRequestException e) {
-            throw new TrickyFsNetworkException(e);
+            throw new TrivialFsNetworkException(e);
         } catch (NetworkConnectException e) {
-            throw new TrickyFsNetworkException(e);
+            throw new TrivialFsNetworkException(e);
         } catch (InvalidProtocolBufferException e) {
-            throw new TrickyFsNetworkException(e);
+            throw new TrivialFsNetworkException(e);
         }
 
     }

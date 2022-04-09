@@ -3,7 +3,7 @@ package org.fofcn.trivialfs.store.rpc;
 import com.fofcn.trivialfs.netty.NettyProtos;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.fofcn.trivialfs.common.exception.TrickyFsException;
+import org.fofcn.trivialfs.common.exception.TrivialFsException;
 import org.fofcn.trivialfs.common.thread.PoolHelper;
 import org.fofcn.trivialfs.netty.NetworkClient;
 import org.fofcn.trivialfs.netty.config.NettyClientConfig;
@@ -24,7 +24,7 @@ import java.util.concurrent.*;
  * @datetime 2022/03/31 14:33
  */
 @Slf4j
-public class RpcClient {
+public class NettyRpcClient {
 
     private final NetworkClient networkClient;
 
@@ -37,7 +37,7 @@ public class RpcClient {
      */
     private final CopyOnWriteArrayList<String> peers = new CopyOnWriteArrayList<>();
 
-    public RpcClient(final NettyClientConfig nettyClientConfig, final int concurrent, final List<String> peers) {
+    public NettyRpcClient(final NettyClientConfig nettyClientConfig, final int concurrent, final List<String> peers) {
         this.networkClient = new NettyNetworkClient(nettyClientConfig);
         this.networkClient.start();
         this.waitMillis = nettyClientConfig.getConnectTimeoutMillis();
@@ -54,23 +54,23 @@ public class RpcClient {
      * @param request 请求
      * @return 结果
      */
-    public NettyProtos.NettyReply callSync(int requestCode, NettyProtos.NettyRequest request) throws TrickyFsException {
+    public NettyProtos.NettyReply callSync(int requestCode, NettyProtos.NettyRequest request) throws TrivialFsException {
         NetworkCommand networkCommand = NetworkCommand.createRequestCommand(requestCode, request.toByteArray());
         if (peers.size() == 1) {
             try {
                 networkClient.sendSync(peers.get(0), networkCommand, waitMillis);
             } catch (NetworkConnectException e) {
-                throw new TrickyFsException(e);
+                throw new TrivialFsException(e);
             } catch (NetworkSendRequestException e) {
-                throw new TrickyFsException(e);
+                throw new TrivialFsException(e);
             } catch (InterruptedException e) {
-                throw new TrickyFsException(e);
+                throw new TrivialFsException(e);
             } catch (NetworkTimeoutException e) {
-                throw new TrickyFsException(e);
+                throw new TrivialFsException(e);
             }
         }
 
-        throw new TrickyFsException("multi-peers exists");
+        throw new TrivialFsException("multi-peers exists");
     }
 
 
@@ -80,19 +80,19 @@ public class RpcClient {
      * @param request 请求
      * @return 结果
      */
-    public void callOneWay(int requestCode, NettyProtos.NettyRequest request) throws TrickyFsException {
+    public void callOneWay(int requestCode, NettyProtos.NettyRequest request) throws TrivialFsException {
         NetworkCommand networkCommand = NetworkCommand.createRequestCommand(requestCode, request.toByteArray());
         if (peers.size() != 1) {
             try {
                 networkClient.sendOneway(peers.get(0), networkCommand, waitMillis, null);
             } catch (NetworkConnectException e) {
-                throw new TrickyFsException(e);
+                throw new TrivialFsException(e);
             } catch (NetworkSendRequestException e) {
-                throw new TrickyFsException(e);
+                throw new TrivialFsException(e);
             } catch (InterruptedException e) {
-                throw new TrickyFsException(e);
+                throw new TrivialFsException(e);
             } catch (NetworkTimeoutException e) {
-                throw new TrickyFsException(e);
+                throw new TrivialFsException(e);
             }
         }
     }

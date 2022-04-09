@@ -16,8 +16,14 @@ import java.util.List;
 @Data
 public class ClientConfig {
 
+    /**
+     * 线程数量
+     */
     private int threadCnt;
 
+    /**
+     * 客户端TCP配置
+     */
     private NettyClientConfig tcpClientConfig;
 
     private List<String> storeNodes;

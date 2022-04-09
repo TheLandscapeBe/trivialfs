@@ -6,12 +6,12 @@ package org.fofcn.trivialfs.common.exception;
  * @author errorfatal89@gmail.com
  * @datetime 2022/04/02 16:31
  */
-public class TrickyFsException extends Exception {
-    public TrickyFsException(Exception e) {
+public class TrivialFsException extends Exception {
+    public TrivialFsException(Exception e) {
         super(e);
     }
 
-    public TrickyFsException(String msg) {
+    public TrivialFsException(String msg) {
         super(msg);
     }
 }

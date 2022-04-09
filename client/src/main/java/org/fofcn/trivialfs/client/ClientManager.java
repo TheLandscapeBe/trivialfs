@@ -1,7 +1,7 @@
 package org.fofcn.trivialfs.client;
 
 import org.fofcn.trivialfs.client.config.ClientConfig;
-import org.fofcn.trivialfs.client.impl.TrickyClientImpl;
+import org.fofcn.trivialfs.client.impl.TrivialClientImpl;
 import org.fofcn.trivialfs.client.rpc.RpcClient;
 
 /**
@@ -28,8 +28,8 @@ public class ClientManager {
         this.rpcClient.shutdown();
     }
 
-    public TrickyClient getClient() {
-        return new TrickyClientImpl(rpcClient);
+    public TrivialClient getClient() {
+        return new TrivialClientImpl(rpcClient);
     }
 
 }

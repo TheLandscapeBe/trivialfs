@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.fofcn.trivialfs.common.EnumUtil;
 import org.fofcn.trivialfs.common.R;
 import org.fofcn.trivialfs.common.RWrapper;
-import org.fofcn.trivialfs.common.exception.TrickyFsException;
+import org.fofcn.trivialfs.common.exception.TrivialFsException;
 import org.fofcn.trivialfs.common.network.RequestCode;
 import org.fofcn.trivialfs.common.thread.PoolHelper;
 import org.fofcn.trivialfs.netty.config.NettyClientConfig;
@@ -23,7 +23,7 @@ import org.fofcn.trivialfs.store.distributed.masterslave.longpoll.LongPolling;
 import org.fofcn.trivialfs.store.distributed.masterslave.processor.PingProcessor;
 import org.fofcn.trivialfs.store.distributed.masterslave.processor.ReplicateProcessor;
 import org.fofcn.trivialfs.store.pubsub.Broker;
-import org.fofcn.trivialfs.store.rpc.RpcClient;
+import org.fofcn.trivialfs.store.rpc.NettyRpcClient;
 import org.fofcn.trivialfs.store.rpc.RpcServer;
 import org.fofcn.trivialfs.store.rpc.RpcServerFactoryImpl;
 
@@ -50,7 +50,7 @@ public class MasterSlaveClusterImpl implements ClusterManager {
 
     private final ClusterConfig clusterConfig;
 
-    private final RpcClient rpcClient;
+    private final NettyRpcClient nettyRpcClient;
 
     private final RpcServer rpcServer;
 
@@ -96,7 +96,7 @@ public class MasterSlaveClusterImpl implements ClusterManager {
         // 超时时间需要是长轮询的三倍 + C 秒
         NettyClientConfig nettyClientConfig = clusterConfig.getRpcConfig().toNettyClientConfig();
         nettyClientConfig.setConnectTimeoutMillis(190 * 1000);
-        this.rpcClient = new RpcClient(nettyClientConfig, 1, new ArrayList<>(peerTable.values()));
+        this.nettyRpcClient = new NettyRpcClient(nettyClientConfig, 1, new ArrayList<>(peerTable.values()));
 
         this.longPolling = new LongPolling();
     }
@@ -138,7 +138,7 @@ public class MasterSlaveClusterImpl implements ClusterManager {
                     NettyProtos.NettyRequest request = NettyProtos.NettyRequest.newBuilder()
                             .setClusterRequest(clusterRequest)
                             .build();
-                    NettyProtos.NettyReply reply = rpcClient.callSync(RequestCode.PING, request);
+                    NettyProtos.NettyReply reply = nettyRpcClient.callSync(RequestCode.PING, request);
                     ClusterProtos.PingReply pingReply = reply.getClusterReply().getPingReply();
                     if (!pingReply.getSuccess()) {
                         log.error("master error");
@@ -203,7 +203,7 @@ public class MasterSlaveClusterImpl implements ClusterManager {
                         .build();
 
                 try {
-                    NettyProtos.NettyReply replicateReply = rpcClient.callSync(RequestCode.REPLICATE, request);
+                    NettyProtos.NettyReply replicateReply = nettyRpcClient.callSync(RequestCode.REPLICATE, request);
                     ClusterProtos.ReplicateReply replicateData = replicateReply.getClusterReply().getReplicateReply();
                     if (replicateData.getExists()) {
                         // 存在文件数据更新，则将数据文件写入到block file中
@@ -214,7 +214,7 @@ public class MasterSlaveClusterImpl implements ClusterManager {
                             log.error("replicate and write block file error");
                         }
                     }
-                } catch (TrickyFsException e) {
+                } catch (TrivialFsException e) {
                     log.error("replicate error", e);
                 }
             }
