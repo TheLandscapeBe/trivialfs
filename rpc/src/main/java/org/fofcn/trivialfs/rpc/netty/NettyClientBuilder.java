@@ -14,43 +14,43 @@ public class NettyClientBuilder  {
         return new NettyClientBuilder();
     }
 
-    public NettyClientConfig setClientWorkerThreads(int workerThreads) {
+    public NettyClientConfig clientWorkerThreads(int workerThreads) {
         nettyClientConfig.setClientWorkerThreads(workerThreads);
         return nettyClientConfig;
     }
 
-    public NettyClientConfig setConnectTimeoutMillis(int connectTimeoutMillis) {
+    public NettyClientConfig connectTimeoutMillis(int connectTimeoutMillis) {
         nettyClientConfig.setConnectTimeoutMillis(connectTimeoutMillis);
         return nettyClientConfig;
     }
 
 
-    public NettyClientConfig setChannelNotActiveInterval(int channelNotActiveInterval) {
+    public NettyClientConfig channelNotActiveInterval(int channelNotActiveInterval) {
         nettyClientConfig.setChannelNotActiveInterval(channelNotActiveInterval);
         return nettyClientConfig;
     }
 
-    public NettyClientConfig setClientChannelMaxIdleTimeSeconds(int channelMaxIdleTimeSeconds) {
+    public NettyClientConfig clientChannelMaxIdleTimeSeconds(int channelMaxIdleTimeSeconds) {
         nettyClientConfig.setClientChannelMaxIdleTimeSeconds(channelMaxIdleTimeSeconds);
         return nettyClientConfig;
     }
-    public NettyClientConfig setClientSocketSndBufSize(int socketSndBufSize) {
+    public NettyClientConfig clientSocketSndBufSize(int socketSndBufSize) {
         nettyClientConfig.setClientSocketSndBufSize(socketSndBufSize);
         return nettyClientConfig;
     }
-    public NettyClientConfig setClientSocketRcvBufSize(int socketRcvBufSize) {
+    public NettyClientConfig clientSocketRcvBufSize(int socketRcvBufSize) {
         nettyClientConfig.setClientSocketRcvBufSize(socketRcvBufSize);
         return nettyClientConfig;
     }
-    public NettyClientConfig setQueueCapacity(int queueCapacity) {
+    public NettyClientConfig queueCapacity(int queueCapacity) {
         nettyClientConfig.setQueueCapacity(queueCapacity);
         return nettyClientConfig;
     }
-    public NettyClientConfig setUseTLS(boolean useTLS) {
+    public NettyClientConfig useTLS(boolean useTLS) {
         nettyClientConfig.setUseTLS(useTLS);
         return nettyClientConfig;
     }
-    public NettyClientConfig setTlsFile(String tlsFile) {
+    public NettyClientConfig tlsFile(String tlsFile) {
         nettyClientConfig.setTlsFile(tlsFile);
         return nettyClientConfig;
     }

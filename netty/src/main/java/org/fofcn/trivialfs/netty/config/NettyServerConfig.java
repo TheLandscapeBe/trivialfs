@@ -8,8 +8,14 @@ import lombok.Data;
 @Data
 public class NettyServerConfig {
 
+    /**
+     * 绑定地址
+     */
     private String host;
 
+    /**
+     * 端口
+     */
     private int listenPort = 8010;
 
     private int serverWorkerThreads = 8;

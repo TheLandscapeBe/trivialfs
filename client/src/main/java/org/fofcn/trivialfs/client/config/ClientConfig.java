@@ -1,10 +1,8 @@
 package org.fofcn.trivialfs.client.config;
 
-import org.fofcn.trivialfs.netty.config.NettyClientConfig;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.List;
+import org.fofcn.trivialfs.netty.config.NettyClientConfig;
 
 /**
  * 客户端配置
@@ -25,6 +23,4 @@ public class ClientConfig {
      * 客户端TCP配置
      */
     private NettyClientConfig tcpClientConfig;
-
-    private List<String> storeNodes;
 }

@@ -6,9 +6,10 @@ import com.google.protobuf.ByteString;
 import org.fofcn.trivialfs.client.ApiResult;
 import org.fofcn.trivialfs.client.ApiResultWrapper;
 import org.fofcn.trivialfs.client.TrivialClient;
-import org.fofcn.trivialfs.client.rpc.RpcClient;
-import org.fofcn.trivialfs.common.exception.TrivialFsNetworkException;
+import org.fofcn.trivialfs.common.exception.TrivialFsException;
+import org.fofcn.trivialfs.common.network.NodeAddress;
 import org.fofcn.trivialfs.common.network.RequestCode;
+import org.fofcn.trivialfs.rpc.RpcClient;
 
 import java.io.File;
 import java.io.InputStream;
@@ -28,8 +29,11 @@ public class TrivialClientImpl implements TrivialClient {
     }
 
     @Override
-    public ApiResult write(String bucket, byte[] content) throws TrivialFsNetworkException {
-        long fileKey = writeFile(content);
+    public ApiResult write(String bucket, byte[] content) throws TrivialFsException {
+        // 通过bucket服务获取写入节点地址
+        NodeAddress storePoint = getWriteEndPoint(bucket);
+        // 写入store节点
+        long fileKey = writeFile(storePoint, content);
         return fileKey == -1L ? ApiResultWrapper.fail("") :
                 ApiResultWrapper.success(fileKey);
     }
@@ -54,18 +58,22 @@ public class TrivialClientImpl implements TrivialClient {
         return null;
     }
 
-    private long writeFile(byte[] content) throws TrivialFsNetworkException {
+    private long writeFile(NodeAddress nodeAddress, byte[] content) throws TrivialFsException {
         NettyProtos.NettyRequest request;
         FileDataProtos.FileRequest fileRequest = FileDataProtos.FileRequest.newBuilder()
                 .setData(ByteString.copyFrom(content))
                 .setLength(content.length)
                 .build();
         request = NettyProtos.NettyRequest.newBuilder().setFileRequest(fileRequest).build();
-        NettyProtos.NettyReply reply = rpcClient.callSync(RequestCode.FILE_UPLOAD, request);
+        NettyProtos.NettyReply reply = rpcClient.callSync(nodeAddress.getAddress(), RequestCode.FILE_UPLOAD, request);
         if (reply.getFileReply().getSuccess()) {
             return reply.getFileReply().getKey();
         }
 
         return -1L;
+    }
+
+    private NodeAddress getWriteEndPoint(String bucket) {
+        return new NodeAddress("127.0.0.1", 50000);
     }
 }

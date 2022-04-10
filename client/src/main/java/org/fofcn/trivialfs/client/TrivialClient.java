@@ -1,5 +1,6 @@
 package org.fofcn.trivialfs.client;
 
+import org.fofcn.trivialfs.common.exception.TrivialFsException;
 import org.fofcn.trivialfs.common.exception.TrivialFsNetworkException;
 
 import java.io.File;
@@ -19,7 +20,7 @@ public interface TrivialClient {
      * @param content 文件内容
      * @return
      */
-    ApiResult write(String bucket, byte[] content) throws TrivialFsNetworkException;
+    ApiResult write(String bucket, byte[] content) throws TrivialFsException;
 
     /**
      * 写入文件
