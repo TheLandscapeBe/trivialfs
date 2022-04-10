@@ -17,7 +17,7 @@ import java.io.InputStream;
  * @datetime 2022/03/23 17:27:00
  */
 @Slf4j
-public class FutureStoreMain {
+public class TrivialFsStoreMain {
 
     public static void main(String[] args) {
         if (args.length != 1) {

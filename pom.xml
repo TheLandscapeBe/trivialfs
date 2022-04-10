@@ -3,11 +3,40 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>org.fofcn</groupId>
     <artifactId>trivialfs</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <description>A distributed small file store system.</description>
+
+    <organization>
+        <name>TheLandscapeBe</name>
+        <url>https://github.com/TheLandscapeBe</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <email>errorfatal89@gmail.com</email>
+            <timezone>GMT+8</timezone>
+        </developer>
+    </developers>
+
+    <url>https://github.com/TheLandscapeBe/trivialfs</url>
+
+    <licenses>
+        <license>
+            <name>APACHE LICENSE, VERSION 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/TheLandscapeBe/trivialfs.git</url>
+        <connection>scm:git:https://github.com/TheLandscapeBe/trivialfs.git</connection>
+        <developerConnection>scm:git:https://github.com/TheLandscapeBe/trivialfs.git</developerConnection>
+        <tag>v1.0.0</tag>
+    </scm>
+
     <modules>
         <module>store</module>
         <module>bucket</module>
@@ -27,10 +56,11 @@
         <logback.version>1.2.3</logback.version>
         <protobuf.version>3.19.1</protobuf.version>
         <ehcache.version>3.8.1</ehcache.version>
+        <docker.image.prefix>org.fofcn</docker.image.prefix>
+        <dockerfile.skip>true</dockerfile.skip>
     </properties>
 
     <dependencies>
-
         <!-- junit test -->
         <dependency>
             <groupId>junit</groupId>

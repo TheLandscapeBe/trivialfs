@@ -1,11 +1,11 @@
 package org.fofcn.trivialfs.rpc.netty;
 
 import org.fofcn.trivialfs.netty.NetworkServer;
+import org.fofcn.trivialfs.netty.config.NettyServerConfig;
 import org.fofcn.trivialfs.netty.interceptor.RequestInterceptor;
 import org.fofcn.trivialfs.netty.netty.NettyNetworkServer;
 import org.fofcn.trivialfs.netty.processor.NettyRequestProcessor;
 import org.fofcn.trivialfs.netty.processor.RequestProcessor;
-import org.fofcn.trivialfs.rpc.RpcConfig;
 import org.fofcn.trivialfs.rpc.RpcServer;
 
 /**
@@ -15,8 +15,8 @@ public class NettyRpcServer implements RpcServer {
 
     private final NetworkServer server;
 
-    public NettyRpcServer(final RpcConfig rpcConfig) {
-        this.server = new NettyNetworkServer(rpcConfig.toNettyServerConfig());
+    public NettyRpcServer(final NettyServerConfig nettyServerConfig) {
+        this.server = new NettyNetworkServer(nettyServerConfig);
     }
 
     @Override
