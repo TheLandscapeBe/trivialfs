@@ -58,6 +58,11 @@ public class TrivialClientImpl implements TrivialClient {
         return null;
     }
 
+    @Override
+    public ApiResult delete(String bucket, long fileKey) {
+        return null;
+    }
+
     private long writeFile(NodeAddress nodeAddress, byte[] content) throws TrivialFsException {
         NettyProtos.NettyRequest request;
         FileDataProtos.FileRequest fileRequest = FileDataProtos.FileRequest.newBuilder()

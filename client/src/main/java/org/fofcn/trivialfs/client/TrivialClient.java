@@ -1,7 +1,6 @@
 package org.fofcn.trivialfs.client;
 
 import org.fofcn.trivialfs.common.exception.TrivialFsException;
-import org.fofcn.trivialfs.common.exception.TrivialFsNetworkException;
 
 import java.io.File;
 import java.io.InputStream;
@@ -49,8 +48,16 @@ public interface TrivialClient {
     /**
      * 读取文件
      * @param bucket
-     * @param fileId 文件名
+     * @param fileKey 文件名
      * @return
      */
-    ApiResult read(String bucket, long fileId);
+    ApiResult read(String bucket, long fileKey);
+
+    /**
+     * 删除文件
+     * @param bucket
+     * @param fileKey
+     * @return 删除结果
+     */
+    ApiResult delete(String bucket, long fileKey);
 }
