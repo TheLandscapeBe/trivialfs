@@ -51,7 +51,7 @@ public class IndexTable extends BaseFile {
         ByteBuffer buffer = indexNode.encode();
         R<AppendResult> appendResult = super.append(buffer);
         if (RWrapper.isSuccess(appendResult)) {
-
+            // todo
         }
     }
 
@@ -74,8 +74,6 @@ public class IndexTable extends BaseFile {
         writeLong(superBlock.getAmount().get());
         // 重定位写入位置
         resetWritePos(StoreConstant.SUPER_BLOCK_LENGTH);
-
-        mappedBuffer = map(0, 4096);
     }
 
     @Override
@@ -89,9 +87,10 @@ public class IndexTable extends BaseFile {
     }
 
     @Override
-    protected void doAfterInit() {
+    protected void doAfterInit() throws IOException {
         broker.registerConsumer(StoreConstant.BLOCK_TOPIC_NAME, new IndexFileConsumer(this));
         flushStrategy = new DefaultFlushStrategyFactory().createStrategy(flushStrategyConfig, getFileChannel());
+        mappedBuffer = map(0, 4096);
     }
 
 }

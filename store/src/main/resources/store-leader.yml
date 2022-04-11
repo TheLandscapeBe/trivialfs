@@ -17,7 +17,7 @@ trivialfs:
   # TCP服务端配置
   serverConfig:
     host: 127.0.0.1
-    listenPort: 60000
+    listenPort: 41234
     serverWorkerThreads: 8
     serverSelectorThreads: 3
     serverChannelMaxIdleTimeSeconds: 120
@@ -42,7 +42,7 @@ trivialfs:
     mode: 1
     peerId: 1
     role: 1
-    address: 172.0.0.1:60001
+    address: 172.0.0.1:41235
 #    peers:
 #      - 2:172.0.0.1:60002
 #      - 3:172.0.0.1:60003
@@ -60,7 +60,7 @@ trivialfs:
         tlsFile:
       rpcServerConfig:
         host: 127.0.0.1
-        listenPort: 60001
+        listenPort: 41235
         serverWorkerThreads: 8
         serverSelectorThreads: 3
         serverChannelMaxIdleTimeSeconds: 120

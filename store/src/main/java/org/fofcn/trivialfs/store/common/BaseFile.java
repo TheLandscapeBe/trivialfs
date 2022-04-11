@@ -250,7 +250,7 @@ public class BaseFile {
 
     }
 
-    protected void doAfterInit() {
+    protected void doAfterInit() throws IOException {
 
     }
 

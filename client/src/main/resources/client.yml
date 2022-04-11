@@ -6,8 +6,8 @@ trivialfs:
     connectTimeoutMillis: 30000
     channelNotActiveInterval: 60000
     clientChannelMaxIdleTimeSeconds: 120
-    clientSocketSndBufSize: 65535
-    clientSocketRcvBufSize: 65535
+    clientSocketSndBufSize: 655350
+    clientSocketRcvBufSize: 655350
     queueCapacity: 1000
     useTLS: false
     tlsFile:

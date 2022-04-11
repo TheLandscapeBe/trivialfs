@@ -51,15 +51,21 @@ public class StoreController {
     }
 
     public void init() {
+        log.info("init block file");
         blockFile.init();
+        log.info("init index file");
         indexTable.init();
+        log.info("init store server");
         storeServer.init();
+        log.info("init cluster Manager");
         clusterManager.init();
     }
 
     public void start() {
         storeServer.start();
+        log.info("start store server");
         clusterManager.start();
+        log.info("start cluster manager");
     }
 
     public void shutdown() {

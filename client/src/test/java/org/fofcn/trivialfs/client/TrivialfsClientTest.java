@@ -36,7 +36,7 @@ public class TrivialfsClientTest {
 
     private static ClientManager clientManager;
 
-    private static final ThreadPoolExecutor testPool = PoolHelper.newFixedPool("", "", 4, 1024000);
+    private static final ThreadPoolExecutor testPool = PoolHelper.newFixedPool("", "", 8, 1024000);
 
     @BeforeClass
     public static void beforeClass() {
@@ -58,7 +58,9 @@ public class TrivialfsClientTest {
     @Test
     public void testWrite() throws NoSuchFieldException {
         try {
-            when(spyClient.getWriteEndPoint("")).thenReturn(new NodeAddress("127.0.0.1", 60000));
+            // "192.168.1.83"
+            // "127.0.0.1"
+            when(spyClient.getWriteEndPoint("")).thenReturn(new NodeAddress("192.168.1.83", 41234));
             File file = new File("G:\\github.com\\html-exporter-master.zip");
             InputStream in = new FileInputStream(file);
             byte[] content = new byte[in.available()];
