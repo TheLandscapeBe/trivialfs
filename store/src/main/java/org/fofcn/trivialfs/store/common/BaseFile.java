@@ -5,6 +5,7 @@ import org.fofcn.trivialfs.common.FilePaddingUtil;
 import org.fofcn.trivialfs.common.R;
 import org.fofcn.trivialfs.common.RWrapper;
 import org.fofcn.trivialfs.store.common.constant.StoreConstant;
+import org.fofcn.trivialfs.store.common.enums.ReadWriteState;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -57,12 +59,23 @@ public class BaseFile {
 
     /**
      * 自动扩展大小
-     * todo 配置化
      */
-    private final long AUTO_EXPAND_SIZE = 1024L * 1024;
+    private final long autoExpandSize;
 
-    public BaseFile(final File file) {
+    /**
+     * 块最大大小
+     */
+    private final long maxBlockFileSize;
+
+    /**
+     * 读写状态，初始化为可写
+     */
+    private final AtomicReference<ReadWriteState> readWriteStateRef = new AtomicReference<>(ReadWriteState.WRITEABLE);
+
+    public BaseFile(final File file, final long autoExpandSize, final long maxBlockFileSize) {
         this.file = file;
+        this.autoExpandSize = autoExpandSize;
+        this.maxBlockFileSize = maxBlockFileSize;
     }
 
     /**
@@ -137,27 +150,7 @@ public class BaseFile {
      * @return 追加结果
      */
     public R<AppendResult> append(ByteBuffer buffer) {
-        AppendResult appendResult = new AppendResult();
-        readWriteLock.writeLock().lock();
-        int length = buffer.limit();
-        padding(length);
-        long pos;
-        try {
-            // 取当前写入偏移
-            pos = writePos.get();
-            // 写入数据内容
-            fileChannel.write(buffer, pos);
-            pos = writePos.addAndGet(length);
-            doAfterAppend(pos, length);
-        } catch (IOException e) {
-            log.error("write file error.", e);
-            return RWrapper.fail();
-        } finally {
-            readWriteLock.writeLock().unlock();
-        }
-
-        appendResult.setOffset(pos);
-        return RWrapper.success(appendResult);
+        return doAppend(-1L, buffer);
     }
 
     /**
@@ -167,31 +160,7 @@ public class BaseFile {
      * @return 追加结果
      */
     public R<AppendResult> append(long offset, ByteBuffer buffer) {
-        AppendResult appendResult = new AppendResult();
-        if (readWriteLock.writeLock().tryLock()) {
-            int length = buffer.limit();
-            padding(length);
-
-            long pos;
-            try {
-                pos = offset;
-                // 写入数据内容
-                fileChannel.write(buffer, pos);
-                pos = writePos.addAndGet(offset);
-                doAfterAppend(pos, length);
-            } catch (IOException e) {
-                log.error("write file error.", e);
-                return RWrapper.fail();
-            } finally {
-                readWriteLock.writeLock().unlock();
-            }
-
-            appendResult.setOffset(pos);
-            return RWrapper.success(appendResult);
-        }
-
-        log.error("acquire write lock error");
-        return RWrapper.fail();
+        return doAppend(offset, buffer);
     }
 
     /**
@@ -217,6 +186,58 @@ public class BaseFile {
         return null;
     }
 
+    /**
+     * 添加文件
+     * @param offset 偏移，如果为-1L，则使用writePos
+     * @param buffer 内容
+     * @return 结果
+     */
+    private R<AppendResult> doAppend(long offset, ByteBuffer buffer) {
+        AppendResult appendResult = new AppendResult();
+        if (readWriteLock.writeLock().tryLock()) {
+            if (readWriteStateRef.get().equals(ReadWriteState.READABLE)) {
+                // todo 定义bizCode为BLOCK_EXECEED_MAX_SIZE
+                return RWrapper.fail(1);
+            }
+
+            padding();
+
+            int length = buffer.limit();
+            // 判断写入偏移与最大块大小之间的差别如果小于length，那么直接返回失败
+            if (maxBlockFileSize - writePos.get() < length) {
+                // todo 定义bizCode为BLOCK_EXECEED_MAX_SIZE
+                readWriteStateRef.getAndSet(ReadWriteState.READABLE);
+                return RWrapper.fail(1);
+            }
+
+            long pos;
+            try {
+                pos = offset == -1L ? writePos.get() : offset;
+                // 写入数据内容
+                fileChannel.write(buffer, pos);
+                pos = writePos.addAndGet(offset);
+                doAfterAppend(pos, length);
+            } catch (IOException e) {
+                log.error("write file error.", e);
+                return RWrapper.fail();
+            } finally {
+                readWriteLock.writeLock().unlock();
+            }
+
+            appendResult.setOffset(pos);
+            return RWrapper.success(appendResult);
+        }
+
+        return RWrapper.fail();
+    }
+
+
+
+    /**
+     * 预填充文件
+     * @param startPos 起始偏移
+     * @param length 填充重读
+     */
     private void padding(long startPos, long length) {
         try {
             FilePaddingUtil.padFile(fileChannel, startPos + length);
@@ -226,40 +247,20 @@ public class BaseFile {
         }
     }
 
-    private void padding(int contentLength) {
+    /**
+     * 填充文件大小
+     */
+    private void padding() {
+        long paddingSize = autoExpandSize;
+        // 计算padding位置与写入位置的差距，如果差距为自动扩展的大小的一半就进行扩展
         long diff = paddingPos.get() - writePos.get();
-        while(diff < AUTO_EXPAND_SIZE || contentLength - diff > 0) {
-            padding(paddingPos.get(), AUTO_EXPAND_SIZE);
+        while(diff < autoExpandSize / 2 && paddingPos.get() < maxBlockFileSize) {
+            if (paddingPos.get() + autoExpandSize < maxBlockFileSize) {
+                paddingSize = maxBlockFileSize - paddingPos.get();
+            }
+            padding(paddingPos.get(), paddingSize);
             diff = paddingPos.get() - writePos.get();
         }
-    }
-
-    protected void doInitNewFile() throws IOException {
-
-    }
-
-    protected void doRecover() throws IOException {
-
-    }
-
-    protected void doInitOldFile() throws IOException {
-
-    }
-
-    protected void doBeforeInit() {
-
-    }
-
-    protected void doAfterInit() throws IOException {
-
-    }
-
-    /**
-     * 主文件添加完成后的动作
-     * @param offset 偏移
-     * @param length 写入长度
-     */
-    protected void doAfterAppend(long offset, int length) {
     }
 
     protected void incrPaddingPos(long incr) {
@@ -309,4 +310,34 @@ public class BaseFile {
     public long getWritePos() {
         return writePos.get();
     }
+
+    protected void doInitNewFile() throws IOException {
+
+    }
+
+    protected void doRecover() throws IOException {
+
+    }
+
+    protected void doInitOldFile() throws IOException {
+
+    }
+
+    protected void doBeforeInit() {
+
+    }
+
+    protected void doAfterInit() throws IOException {
+
+    }
+
+    /**
+     * 主文件添加完成后的动作
+     * @param offset 偏移
+     * @param length 写入长度
+     */
+    protected void doAfterAppend(long offset, int length) {
+    }
+
+
 }

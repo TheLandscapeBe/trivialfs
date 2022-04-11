@@ -12,6 +12,7 @@ import org.fofcn.trivialfs.store.common.flush.FlushStrategy;
 import org.fofcn.trivialfs.store.common.flush.FlushStrategyConfig;
 import org.fofcn.trivialfs.store.guid.UidGenerator;
 import org.fofcn.trivialfs.store.pubsub.Broker;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +23,7 @@ import java.nio.MappedByteBuffer;
  * 块文件
  *
  * @author errorfatal89@gmail.com
- * @datetime 2022/03/23 17:33:00
+ * @date 2022/03/23 17:33:00
  */
 @Slf4j
 public class BlockFile extends BaseFile {
@@ -152,6 +153,16 @@ public class BlockFile extends BaseFile {
         fileTailor.setTailorMagic(buffer.getLong());
         fileBlock.setTailor(fileTailor);
         return fileBlock;
+    }
+
+    /**
+     * 删除文件
+     * @param offset 文件偏移
+     * @return 删除结果
+     */
+    public R<?> delete(long offset) {
+        // todo
+        throw new NotImplementedException();
     }
 
 }

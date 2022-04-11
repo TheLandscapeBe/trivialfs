@@ -23,4 +23,8 @@ public class RWrapper {
     public static <T> R<T> fail() {
         return new R<>(ResultCode.FAIL, 0, "fail", null);
     }
+
+    public static <T> R<T> fail(int bizCode) {
+        return new R<>(ResultCode.FAIL, bizCode, "fail", null);
+    }
 }

@@ -36,6 +36,36 @@ public class StoreConfig {
     private String indexPath;
 
     /**
+     * 自动扩展大小
+     */
+    @JsonProperty
+    private long autoExpandSize;
+
+    /**
+     * 最大块大小
+     */
+    @JsonProperty
+    private long maxBlockFileSize;
+
+    /**
+     * 最多块数
+     */
+    @JsonProperty
+    private int maxBlockFileCnt;
+
+    /**
+     * 文件删除比率 删除大小 / maxBlockFileSize
+     */
+    @JsonProperty
+    private int compactRatio;
+
+    /**
+     * 磁盘预留空间比率
+     */
+    @JsonProperty
+    private int preserveRatio;
+
+    /**
      * 输盘配置
      */
     @JsonProperty

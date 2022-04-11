@@ -3,15 +3,23 @@ trivialfs:
   blockPath: trivialfs/block
   # 索引存储目录
   indexPath: trivialfs/index
-  # bucket服务
+  # 自动扩展大小
+  autoExpandSize: 100MB
+  # 最大块大小
+  maxBlockFileSize: 100GB
+  # 最多块数
+  maxBlockFileCnt: 10
+  # 文件删除比率 删除大小 / maxBlockFileSize
+  compactRatio: 80
+  # 磁盘预留空间比率
+  preserveRatio: 20
+  # bucket名称
   buckets: trivialfs-a
-
   # 刷盘配置
   flushConfig:
     strategy: ASYNC
     flushThreshold: 100
     bytes: 10485760
-
   uidConfig:
     workerId: 1
   # TCP服务端配置

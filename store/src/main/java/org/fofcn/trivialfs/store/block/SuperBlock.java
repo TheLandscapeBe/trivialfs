@@ -1,6 +1,7 @@
 package org.fofcn.trivialfs.store.block;
 
 import lombok.Data;
+import org.fofcn.trivialfs.store.common.Codec;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
@@ -12,26 +13,44 @@ import java.util.concurrent.atomic.AtomicLong;
  * @datetime 2022/03/23 17:30:00
  */
 @Data
-public class SuperBlock {
+public class SuperBlock implements Codec<SuperBlock> {
+
+    public static final int SUPER_BLOCK_REAL_LENGTH = 7 * Long.BYTES;
+
     /**
      * 魔数
      */
-    private volatile long magic;
+    private long magic;
 
     /**
      * 版本号
      */
-    private volatile long version;
+    private long version;
 
     /**
      * 文件数量
      */
-    private volatile AtomicLong amount = new AtomicLong(0L);
+    private AtomicLong amount = new AtomicLong(0L);
 
     /**
      * 写入偏移
      */
-    private volatile AtomicLong writePos = new AtomicLong(0L);
+    private AtomicLong writePos = new AtomicLong(0L);
+
+    /**
+     * 最大块大小
+     */
+    private long maxBlockFileSize;
+
+    /**
+     * 压缩比率
+     */
+    private long compactRatio;
+
+    /**
+     * 读写状态 0:只读 1: 读写
+     */
+    private long readWriteState;
 
     public SuperBlock(long magic, long version, long amount, long writePos) {
         this.magic = magic;
@@ -49,5 +68,11 @@ public class SuperBlock {
         buffer.putLong(writePos.get());
         buffer.flip();
         return buffer;
+    }
+
+    @Override
+    public SuperBlock decode(ByteBuffer buffer) {
+        // todo 解码
+        return null;
     }
 }

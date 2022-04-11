@@ -1,5 +1,6 @@
 package org.fofcn.trivialfs.store.index;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.ObjectUtils;
 import org.fofcn.trivialfs.common.R;
 import org.fofcn.trivialfs.common.RWrapper;
@@ -53,6 +54,16 @@ public class IndexTable extends BaseFile {
         if (RWrapper.isSuccess(appendResult)) {
             // todo
         }
+    }
+
+    /**
+     * 删除文件
+     * @param fileKey
+     * @return
+     */
+    public R<?> delete(long fileKey) {
+       // todo
+        throw new NotImplementedException();
     }
 
     @Override
