@@ -84,11 +84,14 @@ public class StoreConfig {
     private NettyClientConfig clientConfig;
 
     /**
-     * 集群配置
+     * cluster configuration
      */
     @JsonProperty
     private ClusterConfig clusterConfig;
 
+    /**
+     * Uid configuration
+     */
     @JsonProperty
     private SnowFlakeConfig uidConfig;
 

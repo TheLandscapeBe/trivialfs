@@ -10,6 +10,7 @@ import org.fofcn.trivialfs.store.common.constant.StoreConstant;
 import org.fofcn.trivialfs.store.common.flush.DefaultFlushStrategyFactory;
 import org.fofcn.trivialfs.store.common.flush.FlushStrategy;
 import org.fofcn.trivialfs.store.common.flush.FlushStrategyConfig;
+import org.fofcn.trivialfs.store.config.StoreConfig;
 import org.fofcn.trivialfs.store.guid.UidGenerator;
 import org.fofcn.trivialfs.store.pubsub.Broker;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -28,8 +29,6 @@ import java.nio.MappedByteBuffer;
 @Slf4j
 public class BlockFile extends BaseFile {
 
-    private static final long SUPER_BLOCK_LENGTH = 4096;
-
     private final SuperBlock superBlock;
 
     private volatile MappedByteBuffer mappedBuffer;
@@ -44,47 +43,47 @@ public class BlockFile extends BaseFile {
 
     private FlushStrategy flushStrategy;
 
-    public BlockFile(File file, final Broker broker,
-                     final FlushStrategyConfig flushConfig,
+    public BlockFile(final File file,
+                     final Broker broker,
+                     final StoreConfig storeConfig,
                      final UidGenerator<Long> uidGenerator) {
-        super(file);
+        super(file, storeConfig.getAutoExpandSize(), storeConfig.getMaxBlockFileSize());
         this.uidGenerator = uidGenerator;
-        this.superBlock = new SuperBlock(StoreConstant.STORE_SUPER_MAGIC_NUMBER,
-                StoreConstant.STORE_VERSION, 0L, 0L);
+        this.superBlock = new SuperBlock(storeConfig.getMaxBlockFileSize(), storeConfig.getCompactRatio());
         this.broker = broker;
         this.producer = new BlockFileProducer(broker);
-        this.flushConfig = flushConfig;
+        this.flushConfig = storeConfig.getFlushConfig();
     }
 
     @Override
     protected void doInitNewFile() throws IOException {
         log.info("do init new block file");
-        superBlock.getWritePos().set(SUPER_BLOCK_LENGTH);
-        // 文件新建，先预分配超级块
-        padFile(SUPER_BLOCK_LENGTH);
-        // 写入超级块魔数
-        writeLong(superBlock.getMagic());
-        // 写入版本号
-        writeLong(superBlock.getVersion());
-        // 写入文件数量
-        writeLong(superBlock.getAmount().get());
-        writeLong(superBlock.getWritePos().get());
-        // 重定位写入位置
-        resetWritePos(SUPER_BLOCK_LENGTH);
 
-        mappedBuffer = map(0, 4096);
+        // 文件新建，先预分配超级块
+        ByteBuffer buffer = superBlock.encode();
+
+        // 写入超级块
+        append(0L, buffer);
+
+        // 重置写入偏移到超级块之后
+        resetWritePos(SuperBlock.SUPER_BLOCK_LENGTH);
+
+        mappedBuffer = map(0, (int) (SuperBlock.SUPER_BLOCK_LENGTH - 1));
     }
 
     @Override
     protected void doInitOldFile() throws IOException {
         log.info("block file nothing with old file for now.");
-        mappedBuffer = map(0, 4096);
+        mappedBuffer = map(0, (int) (SuperBlock.SUPER_BLOCK_LENGTH - 1));
+        ByteBuffer buffer = read(0, SuperBlock.SUPER_BLOCK_REAL_LENGTH);
+        superBlock.decode(buffer);
     }
 
     @Override
     protected void doAfterInit() {
         log.info("init new block file end.");
         broker.registerProducer(StoreConstant.BLOCK_TOPIC_NAME, producer);
+
         this.flushStrategy = new DefaultFlushStrategyFactory().createStrategy(flushConfig, getFileChannel());
     }
 
@@ -119,6 +118,7 @@ public class BlockFile extends BaseFile {
         // 更新超级块信息
         superBlock.getAmount().incrementAndGet();
         superBlock.getWritePos().addAndGet(length);
+        superBlock.setReadWriteState(isWriteable() ? 1 : 0);
         ByteBuffer byteBuffer = mappedBuffer.slice();
         byteBuffer.position(0);
         byteBuffer.put(superBlock.encode());

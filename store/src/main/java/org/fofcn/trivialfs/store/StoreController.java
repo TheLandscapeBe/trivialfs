@@ -43,8 +43,11 @@ public class StoreController {
             log.error("init uid generator error");
             throw new IllegalArgumentException("init uid generator error");
         }
-        this.blockFile = new BlockFile(new File(storeConfig.getBlockPath() + File.separator + "block"), broker, storeConfig.getFlushConfig(), uidGenerator);
-        this.indexTable = new IndexTable(new File(storeConfig.getIndexPath() + File.separator + "index"), broker, storeConfig.getFlushConfig());
+
+        String blockFilePath = storeConfig.getBlockPath() + File.separator + "block";
+        String indexFilePath = storeConfig.getIndexPath() + File.separator + "index";
+        this.blockFile = new BlockFile(new File(blockFilePath), broker, storeConfig, uidGenerator);
+        this.indexTable = new IndexTable(new File(indexFilePath), broker, storeConfig.getFlushConfig());
         this.storeServer = new StoreNetworkServer(blockFile, storeConfig.getServerConfig());
         this.clusterManager = new DefaultClusterFactory().getCluster(storeConfig.getClusterConfig(), broker, blockFile);
     }

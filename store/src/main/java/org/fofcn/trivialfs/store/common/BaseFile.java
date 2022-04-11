@@ -307,6 +307,10 @@ public class BaseFile {
         return fileChannel;
     }
 
+    protected boolean isWriteable() {
+        return readWriteStateRef.get().equals(ReadWriteState.WRITEABLE);
+    }
+
     public long getWritePos() {
         return writePos.get();
     }
@@ -338,6 +342,4 @@ public class BaseFile {
      */
     protected void doAfterAppend(long offset, int length) {
     }
-
-
 }
