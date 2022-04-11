@@ -20,7 +20,11 @@ public class UidFactory {
      */
     public static UidGenerator createGenerator(UidEnum uidEnum, UidConfig uidConfig) {
         if (uidEnum.equals(UidEnum.SNOW_FLAKE)) {
-            return new SnowFlakeUid((SnowFlakeConfig) uidConfig);
+            try {
+                return new SnowFlakeUid((SnowFlakeConfig) uidConfig);
+            } catch (Exception e) {
+                return null;
+            }
         } else if (uidEnum.equals(UidEnum.OTHER)) {
             return new AutoIncrUid((AutoIncrConfig) uidConfig);
         } else {

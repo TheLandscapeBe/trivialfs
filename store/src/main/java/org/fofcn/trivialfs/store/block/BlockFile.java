@@ -10,6 +10,7 @@ import org.fofcn.trivialfs.store.common.constant.StoreConstant;
 import org.fofcn.trivialfs.store.common.flush.DefaultFlushStrategyFactory;
 import org.fofcn.trivialfs.store.common.flush.FlushStrategy;
 import org.fofcn.trivialfs.store.common.flush.FlushStrategyConfig;
+import org.fofcn.trivialfs.store.guid.UidGenerator;
 import org.fofcn.trivialfs.store.pubsub.Broker;
 
 import java.io.File;
@@ -38,10 +39,15 @@ public class BlockFile extends BaseFile {
 
     private final FlushStrategyConfig flushConfig;
 
+    private final UidGenerator<Long> uidGenerator;
+
     private FlushStrategy flushStrategy;
 
-    public BlockFile(File file, final Broker broker, final FlushStrategyConfig flushConfig) {
+    public BlockFile(File file, final Broker broker,
+                     final FlushStrategyConfig flushConfig,
+                     final UidGenerator<Long> uidGenerator) {
         super(file);
+        this.uidGenerator = uidGenerator;
         this.superBlock = new SuperBlock(StoreConstant.STORE_SUPER_MAGIC_NUMBER,
                 StoreConstant.STORE_VERSION, 0L, 0L);
         this.broker = broker;
@@ -119,14 +125,16 @@ public class BlockFile extends BaseFile {
     }
 
     public AppendResult append(FileBlock fileBlock) {
+        fileBlock.getHeader().setKey(uidGenerator.generate());
         ByteBuffer buffer = fileBlock.encode();
         R<AppendResult> appendResult = append(buffer);
         if (RWrapper.isSuccess(appendResult)) {
             // 异步更新索引文件
             producer.produce(fileBlock.getHeader(), appendResult.getData().getOffset());
+            return appendResult.getData();
         }
 
-        return appendResult.getData();
+        return new AppendResult();
     }
 
     public FileBlock read(long pos) {

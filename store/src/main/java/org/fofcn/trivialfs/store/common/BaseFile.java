@@ -138,31 +138,26 @@ public class BaseFile {
      */
     public R<AppendResult> append(ByteBuffer buffer) {
         AppendResult appendResult = new AppendResult();
-        if (readWriteLock.writeLock().tryLock()) {
-            int length = buffer.limit();
-            padding(length);
-
-            long pos;
-            try {
-                // 取当前写入偏移
-                pos = writePos.get();
-                // 写入数据内容
-                fileChannel.write(buffer, pos);
-                pos = writePos.addAndGet(length);
-                doAfterAppend(pos, length);
-            } catch (IOException e) {
-                log.error("write file error.", e);
-                return RWrapper.fail();
-            } finally {
-                readWriteLock.writeLock().unlock();
-            }
-
-            appendResult.setOffset(pos);
-            return RWrapper.success(appendResult);
+        readWriteLock.writeLock().lock();
+        int length = buffer.limit();
+        padding(length);
+        long pos;
+        try {
+            // 取当前写入偏移
+            pos = writePos.get();
+            // 写入数据内容
+            fileChannel.write(buffer, pos);
+            pos = writePos.addAndGet(length);
+            doAfterAppend(pos, length);
+        } catch (IOException e) {
+            log.error("write file error.", e);
+            return RWrapper.fail();
+        } finally {
+            readWriteLock.writeLock().unlock();
         }
 
-        log.error("acquire write lock error");
-        return RWrapper.fail();
+        appendResult.setOffset(pos);
+        return RWrapper.success(appendResult);
     }
 
     /**
@@ -207,17 +202,16 @@ public class BaseFile {
      */
     public ByteBuffer read(long pos, int length) {
         ByteBuffer buffer = ByteBuffer.allocate(length);
-        if (readWriteLock.readLock().tryLock()) {
-            try {
-                fileChannel.position(pos);
-                fileChannel.read(buffer);
-                buffer.flip();
-                return buffer;
-            } catch (IOException e) {
-                log.error("io error", e);
-            } finally {
-                readWriteLock.readLock().unlock();
-            }
+        readWriteLock.readLock().lock();
+        try {
+            fileChannel.position(pos);
+            fileChannel.read(buffer);
+            buffer.flip();
+            return buffer;
+        } catch (IOException e) {
+            log.error("io error", e);
+        } finally {
+            readWriteLock.readLock().unlock();
         }
 
         return null;

@@ -1,12 +1,16 @@
 package org.fofcn.trivialfs.client;
 
 import org.fofcn.trivialfs.client.config.ClientConfig;
+import org.fofcn.trivialfs.client.impl.TrivialClientImpl;
 import org.fofcn.trivialfs.common.exception.TrivialFsException;
+import org.fofcn.trivialfs.common.network.NodeAddress;
 import org.fofcn.trivialfs.common.thread.PoolHelper;
 import org.fofcn.trivialfs.netty.config.NettyClientConfig;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,15 +18,21 @@ import java.io.InputStream;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
 /**
  * 客户端测试类
  *
  * @author errorfatal89@gmail.com
  * @datetime 2022/03/31 17:21
  */
+@RunWith(MockitoJUnitRunner.class)
 public class TrivialfsClientTest {
 
-    private static TrivialClient trickyClient;
+    private static TrivialClientImpl trivialClient;
+
+    private static TrivialClientImpl spyClient;
 
     private static ClientManager clientManager;
 
@@ -36,7 +46,8 @@ public class TrivialfsClientTest {
                 .build();
         clientManager = new ClientManager(clientConfig);
         clientManager.init();
-        trickyClient = clientManager.getClient();
+        trivialClient = (TrivialClientImpl) clientManager.getClient();
+        spyClient = spy(trivialClient);
     }
 
     @AfterClass
@@ -45,8 +56,9 @@ public class TrivialfsClientTest {
     }
 
     @Test
-    public void testWrite() {
+    public void testWrite() throws NoSuchFieldException {
         try {
+            when(spyClient.getWriteEndPoint("")).thenReturn(new NodeAddress("127.0.0.1", 60000));
             File file = new File("G:\\github.com\\html-exporter-master.zip");
             InputStream in = new FileInputStream(file);
             byte[] content = new byte[in.available()];
@@ -55,7 +67,7 @@ public class TrivialfsClientTest {
                 testPool.execute(() -> {
                     ApiResult<Long> fileKey = null;
                     try {
-                        fileKey = trickyClient.write("", content);
+                        fileKey = spyClient.write("", content);
                         if (ApiResultWrapper.isSuccess(fileKey)) {
                             System.out.println(fileKey.getData());
                         }

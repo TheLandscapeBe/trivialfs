@@ -6,6 +6,9 @@ import org.fofcn.trivialfs.common.RWrapper;
 import org.fofcn.trivialfs.store.common.AppendResult;
 import org.fofcn.trivialfs.store.common.BaseFile;
 import org.fofcn.trivialfs.store.common.constant.StoreConstant;
+import org.fofcn.trivialfs.store.common.flush.DefaultFlushStrategyFactory;
+import org.fofcn.trivialfs.store.common.flush.FlushStrategy;
+import org.fofcn.trivialfs.store.common.flush.FlushStrategyConfig;
 import org.fofcn.trivialfs.store.index.pubsub.IndexFileConsumer;
 import org.fofcn.trivialfs.store.pubsub.Broker;
 
@@ -28,10 +31,16 @@ public class IndexTable extends BaseFile {
 
     private volatile MappedByteBuffer mappedBuffer;
 
-    public IndexTable(File file, final Broker broker) {
+    private FlushStrategy flushStrategy;
+
+    private final FlushStrategyConfig flushStrategyConfig;
+
+    public IndexTable(File file, final Broker broker,
+                      final FlushStrategyConfig flushConfig) {
         super(file);
         this.broker = broker;
         this.superBlock = new IndexSuperBlock();
+        this.flushStrategyConfig = flushConfig;
     }
 
     public void append(IndexNode indexNode) {
@@ -44,6 +53,15 @@ public class IndexTable extends BaseFile {
         if (RWrapper.isSuccess(appendResult)) {
 
         }
+    }
+
+    @Override
+    protected void doAfterAppend(long offset, int length) {
+        superBlock.getAmount().incrementAndGet();
+        superBlock.getWritePos().addAndGet(length);
+        ByteBuffer superBuffer = mappedBuffer.slice();
+        superBuffer.put(superBlock.encode());
+        flushStrategy.flush();
     }
 
     @Override
@@ -73,6 +91,7 @@ public class IndexTable extends BaseFile {
     @Override
     protected void doAfterInit() {
         broker.registerConsumer(StoreConstant.BLOCK_TOPIC_NAME, new IndexFileConsumer(this));
+        flushStrategy = new DefaultFlushStrategyFactory().createStrategy(flushStrategyConfig, getFileChannel());
     }
 
 }

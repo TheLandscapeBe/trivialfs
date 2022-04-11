@@ -30,7 +30,7 @@ public class FileBlock implements Codec<FileBlock> {
     public ByteBuffer encode() {
         Checksum crc64 = new CRC32();
         crc64.update(body, 0, body.length);
-        int fileSize = 6 * Long.BYTES + body.length;
+        int fileSize = HEADER_LENGTH+ body.length + TAILOR_LENGTH;
         int padding = fileSize % 8;
         if (padding != 0) {
             fileSize += (Long.BYTES - padding);
@@ -40,8 +40,8 @@ public class FileBlock implements Codec<FileBlock> {
         buffer.putLong(header.getHeaderMagic());
         buffer.putLong(header.getDeleteStatus());
         buffer.putLong(crc64.getValue());
+        buffer.putLong(header.getKey());
         buffer.putLong(header.getLength());
-        buffer.putLong(body.length);
         buffer.put(body);
         buffer.putLong(tailor.getTailorMagic());
         buffer.flip();

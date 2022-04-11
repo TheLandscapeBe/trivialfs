@@ -5,6 +5,7 @@ import lombok.Data;
 import org.fofcn.trivialfs.netty.config.NettyClientConfig;
 import org.fofcn.trivialfs.netty.config.NettyServerConfig;
 import org.fofcn.trivialfs.store.common.flush.FlushStrategyConfig;
+import org.fofcn.trivialfs.store.guid.snowflake.SnowFlakeConfig;
 
 
 /**
@@ -57,5 +58,8 @@ public class StoreConfig {
      */
     @JsonProperty
     private ClusterConfig clusterConfig;
+
+    @JsonProperty
+    private SnowFlakeConfig uidConfig;
 
 }

@@ -41,7 +41,7 @@ public class FileDataProcessor implements NettyRequestProcessor {
         FileHeader header = new FileHeader();
         header.setDeleteStatus(0);
         header.setKey(new Random().nextLong());
-        header.setLength(body.getFileRequest().getLength());
+        header.setLength(body.getFileRequest().getData().size());
         FileTailor tailor = new FileTailor();
         FileBlock fileBlock = new FileBlock();
         fileBlock.setHeader(header);

@@ -78,7 +78,7 @@ public class TrivialClientImpl implements TrivialClient {
         return -1L;
     }
 
-    private NodeAddress getWriteEndPoint(String bucket) {
+    public NodeAddress getWriteEndPoint(String bucket) {
         return new NodeAddress("127.0.0.1", 50000);
     }
 }

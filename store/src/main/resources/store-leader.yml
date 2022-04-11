@@ -1,10 +1,10 @@
-trickyfs:
+trivialfs:
   # 主存储目录
-  blockPath: trickyfs/block
+  blockPath: trivialfs/block
   # 索引存储目录
-  indexPath: trickyfs/index
+  indexPath: trivialfs/index
   # bucket服务
-  buckets: trickyfs-a
+  buckets: trivialfs-a
 
   # 刷盘配置
   flushConfig:
@@ -12,6 +12,8 @@ trickyfs:
     flushThreshold: 100
     bytes: 10485760
 
+  uidConfig:
+    workerId: 1
   # TCP服务端配置
   serverConfig:
     host: 127.0.0.1

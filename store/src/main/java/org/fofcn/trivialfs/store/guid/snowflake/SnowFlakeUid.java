@@ -20,7 +20,7 @@ public class SnowFlakeUid implements UidGenerator<Long> {
 
     private final SnowFlakeConfig config;
 
-    public SnowFlakeUid(SnowFlakeConfig config) {
+    public SnowFlakeUid(SnowFlakeConfig config) throws Exception {
         this.config = config;
         this.cachedUidGenerator = new CachedUidGenerator();
         configGenerator();
@@ -31,7 +31,7 @@ public class SnowFlakeUid implements UidGenerator<Long> {
         return cachedUidGenerator.getUID();
     }
 
-    private void configGenerator() {
+    private void configGenerator() throws Exception {
         cachedUidGenerator.setBoostPower(config.getBoostPower());
         cachedUidGenerator.setPaddingFactor(config.getPaddingFactor());
         cachedUidGenerator.setScheduleInterval(config.getScheduleInterval());
@@ -42,6 +42,7 @@ public class SnowFlakeUid implements UidGenerator<Long> {
         cachedUidGenerator.setWorkerIdAssigner(new CustomIdAssigner());
         cachedUidGenerator.setRejectedPutBufferHandler(new CustomRejectPutHandler());
         cachedUidGenerator.setRejectedTakeBufferHandler(new CustomRejectTakeHandler());
+        cachedUidGenerator.afterPropertiesSet();
     }
 
     class CustomIdAssigner implements WorkerIdAssigner {
