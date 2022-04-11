@@ -12,6 +12,16 @@
     <artifactId>bucket</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>org.fofcn</groupId>
+            <artifactId>rpc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
+        <dependency>
+            <groupId>org.fofcn</groupId>
+            <artifactId>netty</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

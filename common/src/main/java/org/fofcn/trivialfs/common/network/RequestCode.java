@@ -31,4 +31,14 @@ public class RequestCode {
      * 复制请求
      */
     public static final int REPLICATE_DATA = 5;
+
+    /**
+     * ping
+     */
+    public static final int BUCKET_PING = 6;
+
+    /**
+     * 选择存储节点
+     */
+    public static final int SELECT_STORE_NODE = 7;
 }
