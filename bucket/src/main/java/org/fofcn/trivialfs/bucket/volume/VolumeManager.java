@@ -6,5 +6,5 @@ package org.fofcn.trivialfs.bucket.volume;
  * @author errorfatal89@gmail.com
  * @datetime 2022/04/11 16:48
  */
-public class VolumeManager {
+public interface VolumeManager {
 }
