@@ -1,9 +1,11 @@
-package com.fofcn.trivivalfs.bucket.volumn.zk;
+package com.fofcn.trivivalfs.bucket.volumn;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.zookeeper.data.Stat;
+import org.fofcn.trivialfs.bucket.constant.BucketConstant;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -22,9 +24,11 @@ public class ZookeeperClientTest {
         String znode = "/buckets";
 
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        CuratorFramework client = CuratorFrameworkFactory.newClient(hostPort, retryPolicy);
-        client.start();
+        CuratorFramework zkClient = CuratorFrameworkFactory.newClient(hostPort, retryPolicy);
+        zkClient.start();
 
-        String str = client.create().forPath(znode, znode.getBytes(StandardCharsets.UTF_8));
+        Stat rootStat = zkClient.checkExists().forPath(BucketConstant.ROOT_PATH);
+
+        String str = zkClient.create().forPath(znode, znode.getBytes(StandardCharsets.UTF_8));
     }
 }

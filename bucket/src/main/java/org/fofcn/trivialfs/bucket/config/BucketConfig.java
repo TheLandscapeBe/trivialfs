@@ -14,4 +14,8 @@ public class BucketConfig {
 
     private NettyServerConfig nettyServerConfig;
 
+    /**
+     * configuration of zookeeper
+     */
+    private ZkClientConfig zkConfig;
 }

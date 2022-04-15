@@ -1,0 +1,9 @@
+trivialfs:
+  volume:
+    type: ZOOKEEPER
+    zkConfig:
+      addresses: 127.0.0.1:2181
+      sessionTimeoutMs: 3000
+      connectionTimeoutMs: 3000
+      retryBaseSleepTimeMs: 3000
+      maxRetryTime: 3

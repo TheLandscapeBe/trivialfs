@@ -31,4 +31,19 @@ public class EtcdVolumeManager implements VolumeManager {
     public StoreNode getNodeByFileKey(String name, String fileKey) {
         return null;
     }
+
+    @Override
+    public boolean init() {
+        return false;
+    }
+
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void shutdown() {
+
+    }
 }

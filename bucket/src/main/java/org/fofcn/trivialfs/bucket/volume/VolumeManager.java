@@ -1,5 +1,7 @@
 package org.fofcn.trivialfs.bucket.volume;
 
+import org.fofcn.trivialfs.common.Service;
+
 import java.util.List;
 
 /**
@@ -8,7 +10,7 @@ import java.util.List;
  * @author errorfatal89@gmail.com
  * @datetime 2022/04/11 16:48
  */
-public interface VolumeManager {
+public interface VolumeManager extends Service {
 
     /**
      * create a volume with specific volume name.
