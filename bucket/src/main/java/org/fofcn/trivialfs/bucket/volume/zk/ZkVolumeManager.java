@@ -1,20 +1,20 @@
 package org.fofcn.trivialfs.bucket.volume.zk;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.zookeeper.data.Stat;
-import org.fofcn.trivialfs.bucket.config.BucketConfig;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.curator.framework.api.transaction.CuratorOp;
+import org.apache.curator.framework.api.transaction.TransactionOp;
 import org.fofcn.trivialfs.bucket.config.ZkClientConfig;
 import org.fofcn.trivialfs.bucket.constant.BucketConstant;
+import org.fofcn.trivialfs.bucket.exception.VolumeException;
 import org.fofcn.trivialfs.bucket.volume.StoreNode;
 import org.fofcn.trivialfs.bucket.volume.VolumeManager;
-import org.fofcn.trivialfs.netty.util.StringUtil;
+import org.fofcn.trivialfs.netty.util.NetworkSerializable;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Volume manager based on zookeeper.
@@ -25,41 +25,23 @@ import java.util.List;
 @Slf4j
 public class ZkVolumeManager implements VolumeManager {
 
-    private final CuratorFramework zkClient;
-
-    private final ZkClientConfig zkClientConfig;
+    private final ZkClient zkClient;
 
     public ZkVolumeManager(final ZkClientConfig zkClientConfig) {
-        this.zkClientConfig = zkClientConfig;
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(zkClientConfig.getRetryBaseSleepTimeMs(),
-                zkClientConfig.getMaxRetryTime());
-        this.zkClient = CuratorFrameworkFactory.newClient(zkClientConfig.getAddresses(), retryPolicy);
+        this.zkClient = new ZkClient(zkClientConfig);
     }
 
     @Override
     public boolean init() {
-        zkClient.start();
-
         // check if root bucket name is existing
         // if exists do nothing
         // else create root bucket
-        Stat rootStat = null;
-        try {
-            rootStat = zkClient.checkExists().forPath(BucketConstant.ROOT_PATH);
-            if (rootStat == null) {
-                String str = zkClient.create().forPath(BucketConstant.ROOT_PATH, BucketConstant.ROOT_PATH.getBytes(StandardCharsets.UTF_8));
-                if (StringUtil.isEmpty(str)) {
-                    log.error("error create root path: <{}>", str);
-                    return false;
-                }
-
-                log.info("create root path: <{}>", str);
-                return false;
-            }
-        } catch (Exception e) {
-            log.error("check root bucket path error", e);
+        boolean root = zkClient.createIfNotExisting(BucketConstant.ROOT_PATH);
+        if (root) {
+            log.error("error create root path: <{}>", BucketConstant.ROOT_PATH);
+            return false;
         }
-
+        log.info("create root path: <{}>", BucketConstant.ROOT_PATH);
         return true;
     }
 
@@ -70,26 +52,94 @@ public class ZkVolumeManager implements VolumeManager {
 
     @Override
     public void shutdown() {
-        zkClient.close();
     }
 
     @Override
     public boolean create(String name) {
-        return false;
+        // create bucket with transactional operations
+        try {
+            String readableName = String.format(BucketConstant.STORE_CLUSTER_READABLE_FMT, name);
+            String writableName = String.format(BucketConstant.STORE_CLUSTER_WRITABLE_FMT, name);
+            zkClient.transCreate(name, readableName, writableName);
+        } catch (VolumeException e) {
+            log.error("error create bucket, name: <{}>", name);
+            return false;
+        }
+
+        return true;
     }
 
     @Override
-    public List<StoreNode> getReadableNode(String name) {
-        return null;
+    public Optional<List<StoreNode>> getReadableNode(String name) {
+        String readableName = String.format(BucketConstant.STORE_CLUSTER_READABLE_FMT, name);
+        return getStoreNodes(readableName);
     }
 
     @Override
-    public List<StoreNode> getWritableNode(String name) {
-        return null;
+    public Optional<List<StoreNode>> getWritableNode(String name) {
+        String writableName = String.format(BucketConstant.STORE_CLUSTER_WRITABLE_FMT, name);
+        return getStoreNodes(writableName);
     }
 
     @Override
-    public StoreNode getNodeByFileKey(String name, String fileKey) {
-        return null;
+    public Optional<StoreNode> getNodeByFileKey(String name, String fileKey) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public boolean addWritableNode(StoreNode storeNode) {
+        // check node if existing, if existing we do nothing and return true
+        // otherwise we will create a node
+        String nodePath = buildWritablePath(storeNode.getPeerId());
+        String readablePath = buildReadablePath(storeNode.getPeerId());
+        boolean readableExists = zkClient.exists(readablePath);
+        boolean writableExists = zkClient.exists(nodePath);
+        byte[] nodeData = NetworkSerializable.jsonEncode(storeNode);
+        if (!writableExists && readableExists) {
+            // start transaction
+            TransactionOp trans = zkClient.createTransaction();
+            CuratorOp writableOp = zkClient.transCreate(trans, nodePath, nodeData);
+            CuratorOp readableOp = zkClient.transDel(trans, readablePath);
+            return zkClient.executeTrans(writableOp, readableOp);
+            // end transaction
+        } else if (writableExists && readableExists) {
+            // todo
+        }
+        zkClient.createIfNotExisting(nodePath, NetworkSerializable.jsonEncode(storeNode));
+        return true;
+    }
+
+    @Override
+    public boolean addReadableNode(StoreNode storeNode) {
+        throw new NotImplementedException();
+    }
+
+    private Optional<List<StoreNode>> getStoreNodes(String readableName) {
+        List<String> nodeList = zkClient.getChildren(readableName);
+        if (CollectionUtils.isEmpty(nodeList)) {
+            return Optional.empty();
+        }
+
+        List<StoreNode> storeNodeList = new ArrayList<>();
+        for (String node : nodeList) {
+            String nodePath = readableName + '/' + node;
+            byte[] nodeData = zkClient.getNodeData(nodePath);
+            if (nodeData == null) {
+                log.warn("Data of the node:<{}> is empty.", nodePath);
+                continue;
+            }
+            StoreNode storeNode = NetworkSerializable.jsonDecode(nodeData, StoreNode.class);
+            storeNodeList.add(storeNode);
+        }
+
+        return CollectionUtils.isEmpty(storeNodeList) ? Optional.empty() : Optional.of(storeNodeList);
+    }
+
+    private String buildWritablePath(String peerId) {
+        return String.format(BucketConstant.STORE_CLUSTER_WRITABLE_NODE_FMT, peerId);
+    }
+
+    private String buildReadablePath(String peerId) {
+        return String.format(BucketConstant.STORE_CLUSTER_READABLE_FMT, peerId);
     }
 }

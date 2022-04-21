@@ -1,8 +1,10 @@
 package org.fofcn.trivialfs.bucket.volume;
 
+import org.fofcn.trivialfs.bucket.exception.VolumeException;
 import org.fofcn.trivialfs.common.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 逻辑卷管理器
@@ -16,22 +18,23 @@ public interface VolumeManager extends Service {
      * create a volume with specific volume name.
      * @param name volume name
      * @return true if success, false otherwise.
+     * @throws VolumeException
      */
-    boolean create(String name);
+    boolean create(String name) throws VolumeException;
 
     /**
      * get a readable node list
      * @param name volume name
      * @return
      */
-    List<StoreNode> getReadableNode(String name);
+    Optional<List<StoreNode>> getReadableNode(String name);
 
     /**
      * get a writable node list
      * @param name volume name
      * @return
      */
-    List<StoreNode> getWritableNode(String name);
+    Optional<List<StoreNode>> getWritableNode(String name);
 
     /**
      * get a node by file key
@@ -39,5 +42,19 @@ public interface VolumeManager extends Service {
      * @param fileKey file key
      * @return a storage node which chosen by load balance algorithm
      */
-    StoreNode getNodeByFileKey(String name, String fileKey);
+    Optional<StoreNode> getNodeByFileKey(String name, String fileKey);
+
+    /**
+     * add a writable store node to volume
+     * @param storeNode store node information
+     * @return true if added success, false otherwise
+     */
+    boolean addWritableNode(StoreNode storeNode);
+
+    /**
+     * add a readable store node to volume
+     * @param storeNode store node information
+     * @return true if added success, false otherwise
+     */
+    boolean addReadableNode(StoreNode storeNode);
 }

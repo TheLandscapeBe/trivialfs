@@ -12,4 +12,29 @@ public class BucketConstant {
      * path for root name
      */
     public static final String ROOT_PATH = "/buckets";
+
+    /**
+     * store node cluster formatter
+     */
+    public static final String STORE_CLUSTER_FMT = "/buckets/%s/StoreCluster";
+
+    /**
+     * readable store cluster formatter
+     */
+    public static final String STORE_CLUSTER_READABLE_FMT = STORE_CLUSTER_FMT + "/readable";
+
+    /**
+     * writable store cluster formatter
+     */
+    public static final String STORE_CLUSTER_WRITABLE_FMT = STORE_CLUSTER_FMT + "/writable";
+
+    /**
+     * readable store cluster node formatter
+     */
+    public static final String STORE_CLUSTER_READABLE_NODE_FMT = STORE_CLUSTER_FMT + "/readable/%s";
+
+    /**
+     * writable store cluster node formatter
+     */
+    public static final String STORE_CLUSTER_WRITABLE_NODE_FMT = STORE_CLUSTER_FMT + "/writable/%s";
 }
