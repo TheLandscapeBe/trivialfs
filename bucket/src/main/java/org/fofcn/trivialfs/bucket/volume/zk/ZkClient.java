@@ -1,25 +1,26 @@
 package org.fofcn.trivialfs.bucket.volume.zk;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.transaction.CuratorOp;
 import org.apache.curator.framework.api.transaction.CuratorTransactionResult;
 import org.apache.curator.framework.api.transaction.TransactionOp;
+import org.apache.curator.framework.recipes.locks.InterProcessLock;
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.data.Stat;
 import org.fofcn.trivialfs.bucket.config.ZkClientConfig;
 import org.fofcn.trivialfs.bucket.exception.VolumeException;
 import org.fofcn.trivialfs.common.Service;
-import org.fofcn.trivialfs.netty.util.ArrayUtil;
 import org.fofcn.trivialfs.netty.util.StringUtil;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Zookeeper client
@@ -29,7 +30,12 @@ import java.util.List;
  */
 @Slf4j
 public class ZkClient implements Service {
+
     private final CuratorFramework zkClient;
+
+    private final ConcurrentHashMap<String, InterProcessLock> lockTable = new ConcurrentHashMap<>(2);
+
+    private final ReentrantLock mainLock = new ReentrantLock();
 
     public ZkClient(final ZkClientConfig zkClientConfig) {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(zkClientConfig.getRetryBaseSleepTimeMs(),
@@ -76,6 +82,14 @@ public class ZkClient implements Service {
     public CuratorOp transDel(TransactionOp transOp, String path) {
         try {
             return transOp.delete().forPath(path);
+        } catch (Exception e) {
+            throw new VolumeException(e);
+        }
+    }
+
+    public CuratorOp transUpData(TransactionOp transOp, String path, byte[] data) {
+        try {
+            return transOp.setData().forPath(path, data);
         } catch (Exception e) {
             throw new VolumeException(e);
         }
@@ -191,6 +205,40 @@ public class ZkClient implements Service {
         return true;
     }
 
+    public boolean lock(String path) {
+        mainLock.lock();
+        try {
+            InterProcessLock lock = lockTable.get(path);
+            if (lock == null) {
+                InterProcessLock newLock = new InterProcessMutex(zkClient, path);
+                lockTable.put(path, newLock);
+            }
+            lock.acquire();
+            return true;
+        } catch (Exception e) {
+            log.error("lock failed.", e);
+        } finally {
+            mainLock.unlock();
+        }
+
+        return false;
+    }
+
+    public void unlock(String path) {
+        mainLock.lock();
+        try {
+            InterProcessLock lock = lockTable.get(path);
+            if (lock == null) {
+                throw new VolumeException("lock not exists");
+            }
+            lock.release();
+        } catch (Exception e) {
+            throw new VolumeException(e);
+        } finally {
+            mainLock.unlock();
+        }
+    }
+
     @Override
     public boolean init() {
         zkClient.start();
@@ -204,6 +252,7 @@ public class ZkClient implements Service {
 
     @Override
     public void shutdown() {
-
+        zkClient.close();
     }
+
 }

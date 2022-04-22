@@ -87,26 +87,47 @@ public class ZkVolumeManager implements VolumeManager {
     }
 
     @Override
-    public boolean addWritableNode(StoreNode storeNode) {
-        // check node if existing, if existing we do nothing and return true
-        // otherwise we will create a node
-        String nodePath = buildWritablePath(storeNode.getPeerId());
-        String readablePath = buildReadablePath(storeNode.getPeerId());
-        boolean readableExists = zkClient.exists(readablePath);
-        boolean writableExists = zkClient.exists(nodePath);
-        byte[] nodeData = NetworkSerializable.jsonEncode(storeNode);
-        if (!writableExists && readableExists) {
-            // start transaction
-            TransactionOp trans = zkClient.createTransaction();
-            CuratorOp writableOp = zkClient.transCreate(trans, nodePath, nodeData);
-            CuratorOp readableOp = zkClient.transDel(trans, readablePath);
-            return zkClient.executeTrans(writableOp, readableOp);
-            // end transaction
-        } else if (writableExists && readableExists) {
-            // todo
+    public boolean addWritableNode(String name, StoreNode storeNode) {
+        // use distribute lock
+        String bucketPath = buildBucketPath(name);
+        if (zkClient.lock(bucketPath)) {
+            try {
+                // check node if existing, if existing we do nothing and return true
+                // otherwise we will create a node
+                String nodePath = buildWritablePath(storeNode.getPeerId());
+                String readablePath = buildReadablePath(storeNode.getPeerId());
+                boolean readableExists = zkClient.exists(readablePath);
+                boolean writableExists = zkClient.exists(nodePath);
+                byte[] nodeData = NetworkSerializable.jsonEncode(storeNode);
+                // start a transaction
+                List<CuratorOp> transOpList = new ArrayList<>(2);
+                TransactionOp trans = zkClient.createTransaction();
+
+                // if writable node exists, we will update its node data;
+                // otherwise we should create the node and set node data.
+                if (writableExists) {
+                    CuratorOp upDataOp = zkClient.transUpData(trans, readablePath, nodeData);
+                    transOpList.add(upDataOp);
+                } else {
+                    CuratorOp writableOp = zkClient.transCreate(trans, nodePath, nodeData);
+                    transOpList.add(writableOp);
+                }
+
+                // if readable node exists, we should delete the readable node;
+                // otherwise we do nothing.
+                if (readableExists) {
+                    CuratorOp readableOp = zkClient.transDel(trans, readablePath);
+                    transOpList.add(readableOp);
+                }
+
+                // commit the transaction
+                return zkClient.executeTrans(transOpList);
+            } finally {
+                zkClient.unlock(bucketPath);
+            }
         }
-        zkClient.createIfNotExisting(nodePath, NetworkSerializable.jsonEncode(storeNode));
-        return true;
+
+        return false;
     }
 
     @Override
@@ -141,5 +162,9 @@ public class ZkVolumeManager implements VolumeManager {
 
     private String buildReadablePath(String peerId) {
         return String.format(BucketConstant.STORE_CLUSTER_READABLE_FMT, peerId);
+    }
+
+    private String buildBucketPath(String name) {
+        return String.format(BucketConstant.STORE_CLUSTER_FMT, name);
     }
 }

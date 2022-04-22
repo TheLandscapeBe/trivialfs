@@ -46,10 +46,11 @@ public interface VolumeManager extends Service {
 
     /**
      * add a writable store node to volume
+     * @param name bucket name
      * @param storeNode store node information
      * @return true if added success, false otherwise
      */
-    boolean addWritableNode(StoreNode storeNode);
+    boolean addWritableNode(String name, StoreNode storeNode);
 
     /**
      * add a readable store node to volume
