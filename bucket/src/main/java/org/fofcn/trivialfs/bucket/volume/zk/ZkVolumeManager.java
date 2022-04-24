@@ -9,12 +9,17 @@ import org.fofcn.trivialfs.bucket.constant.BucketConstant;
 import org.fofcn.trivialfs.bucket.exception.VolumeException;
 import org.fofcn.trivialfs.bucket.volume.StoreNode;
 import org.fofcn.trivialfs.bucket.volume.VolumeManager;
+import org.fofcn.trivialfs.bucket.volume.lb.LoadBalance;
+import org.fofcn.trivialfs.bucket.volume.lb.impl.VolumeRoundRobinLoadBalance;
 import org.fofcn.trivialfs.netty.util.NetworkSerializable;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Volume manager based on zookeeper.
@@ -26,6 +31,10 @@ import java.util.Optional;
 public class ZkVolumeManager implements VolumeManager {
 
     private final ZkClient zkClient;
+
+    private final ConcurrentHashMap<String, LoadBalance<StoreNode>> lbTable = new ConcurrentHashMap<>(16);
+
+    private final ReentrantLock mainLock = new ReentrantLock();
 
     public ZkVolumeManager(final ZkClientConfig zkClientConfig) {
         this.zkClient = new ZkClient(zkClientConfig);
@@ -65,20 +74,38 @@ public class ZkVolumeManager implements VolumeManager {
             log.error("error create bucket, name: <{}>", name);
             return false;
         }
-
         return true;
     }
 
     @Override
-    public Optional<List<StoreNode>> getReadableNode(String name) {
-        String readableName = String.format(BucketConstant.STORE_CLUSTER_READABLE_FMT, name);
-        return getStoreNodes(readableName);
+    public Optional<StoreNode> getReadableNode(String name) {
+        return doGeNode(name, BucketConstant.STORE_CLUSTER_READABLE_FMT);
+    }
+
+    private Optional<StoreNode> doGeNode(String name, String storeClusterFmt) {
+        StoreNode selected = null;
+        LoadBalance<StoreNode> lb = null;
+        mainLock.lock();
+        try {
+            if (!lbTable.contains(name)) {
+                String readableName = String.format(storeClusterFmt, name);
+                Optional<List<StoreNode>> nodeList = getStoreNodes(readableName);
+
+                if (nodeList.isPresent()) {
+                    lb = lbTable.putIfAbsent(name, new VolumeRoundRobinLoadBalance(nodeList.get()));
+                }
+            }
+        } finally {
+            mainLock.unlock();
+        }
+
+        selected = lb.selectOne();
+        return selected == null ? Optional.empty() : Optional.of(selected);
     }
 
     @Override
-    public Optional<List<StoreNode>> getWritableNode(String name) {
-        String writableName = String.format(BucketConstant.STORE_CLUSTER_WRITABLE_FMT, name);
-        return getStoreNodes(writableName);
+    public Optional<StoreNode> getWritableNode(String name) {
+        return doGeNode(name, BucketConstant.STORE_CLUSTER_WRITABLE_FMT);
     }
 
     @Override
@@ -135,15 +162,15 @@ public class ZkVolumeManager implements VolumeManager {
         throw new NotImplementedException();
     }
 
-    private Optional<List<StoreNode>> getStoreNodes(String readableName) {
-        List<String> nodeList = zkClient.getChildren(readableName);
+    private Optional<List<StoreNode>> getStoreNodes(String path) {
+        List<String> nodeList = zkClient.getChildren(path);
         if (CollectionUtils.isEmpty(nodeList)) {
             return Optional.empty();
         }
 
         List<StoreNode> storeNodeList = new ArrayList<>();
         for (String node : nodeList) {
-            String nodePath = readableName + '/' + node;
+            String nodePath = path + '/' + node;
             byte[] nodeData = zkClient.getNodeData(nodePath);
             if (nodeData == null) {
                 log.warn("Data of the node:<{}> is empty.", nodePath);

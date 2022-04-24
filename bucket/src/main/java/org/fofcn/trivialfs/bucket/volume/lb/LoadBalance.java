@@ -1,7 +1,5 @@
 package org.fofcn.trivialfs.bucket.volume.lb;
 
-import java.util.List;
-
 /**
  * load balancer interface
  *
@@ -12,8 +10,7 @@ public interface LoadBalance<T> {
 
     /**
      * choose a object by load balance algorithm
-     * @param list object list
      * @return obj
      */
-    T selectOne(List<T> list);
+    T selectOne();
 }

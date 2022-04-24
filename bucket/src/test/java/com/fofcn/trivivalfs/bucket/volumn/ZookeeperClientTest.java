@@ -26,7 +26,6 @@ public class ZookeeperClientTest {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
         CuratorFramework zkClient = CuratorFrameworkFactory.newClient(hostPort, retryPolicy);
         zkClient.start();
-
         Stat rootStat = zkClient.checkExists().forPath(BucketConstant.ROOT_PATH);
 
         String str = zkClient.create().forPath(znode, znode.getBytes(StandardCharsets.UTF_8));

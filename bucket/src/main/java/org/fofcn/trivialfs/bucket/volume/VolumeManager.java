@@ -27,14 +27,14 @@ public interface VolumeManager extends Service {
      * @param name volume name
      * @return
      */
-    Optional<List<StoreNode>> getReadableNode(String name);
+    Optional<StoreNode> getReadableNode(String name);
 
     /**
      * get a writable node list
      * @param name volume name
      * @return
      */
-    Optional<List<StoreNode>> getWritableNode(String name);
+    Optional<StoreNode> getWritableNode(String name);
 
     /**
      * get a node by file key

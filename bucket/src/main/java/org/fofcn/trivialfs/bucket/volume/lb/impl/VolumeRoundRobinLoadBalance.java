@@ -20,7 +20,7 @@ public class VolumeRoundRobinLoadBalance implements LoadBalance<StoreNode> {
     }
 
     @Override
-    public StoreNode selectOne(List<StoreNode> list) {
+    public StoreNode selectOne() {
         return null;
     }
 }
