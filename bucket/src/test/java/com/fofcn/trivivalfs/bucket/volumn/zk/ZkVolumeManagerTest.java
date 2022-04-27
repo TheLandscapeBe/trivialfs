@@ -43,6 +43,8 @@ public class ZkVolumeManagerTest {
         zkClientConfig.setSessionTimeoutMs(60 * 1000);
         zkVolumeManager = new ZkVolumeManager(zkClientConfig);
         zkVolumeManager.init();
+
+        zkVolumeManager.create(bucketName);
     }
 
     @AfterAll
@@ -94,9 +96,9 @@ public class ZkVolumeManagerTest {
         boolean ret = zkVolumeManager.addReadableNode(bucketName, storeNode);
         assertTrue(ret);
 
-        Optional<StoreNode> exits = zkVolumeManager.getReadableNode(bucketName);
-        assertTrue(exits.isPresent());
-        assertEquals(storeNode.getPeerId(), exits.get().getPeerId());
+        Optional<StoreNode> selected = zkVolumeManager.getReadableNode(bucketName);
+        assertTrue(selected.isPresent());
+        assertEquals(selected.get().getPeerId(), storeNode.getPeerId());
     }
 
     @Test

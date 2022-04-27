@@ -96,32 +96,6 @@ public class ZkVolumeManager implements VolumeManager {
         return doGeNode(name, BucketConstant.STORE_CLUSTER_READABLE_FMT);
     }
 
-    private Optional<StoreNode> doGeNode(String name, String storeClusterFmt) {
-        StoreNode selected = null;
-        LoadBalance<StoreNode> lb = null;
-        mainLock.lock();
-        try {
-            if (!lbTable.contains(name)) {
-                String readableName = String.format(storeClusterFmt, name);
-                Optional<List<StoreNode>> nodeList = getStoreNodes(readableName);
-                if (nodeList.isPresent()) {
-                    LoadBalance<StoreNode> newLb = new VolumeRoundRobinLoadBalance(nodeList.get());
-                    lb = lbTable.putIfAbsent(name, newLb);
-                    if (lb == null) {
-                        lb = newLb;
-                    }
-                } else {
-                    return Optional.empty();
-                }
-            }
-        } finally {
-            mainLock.unlock();
-        }
-
-        selected = lb.selectOne();
-        return selected == null ? Optional.empty() : Optional.of(selected);
-    }
-
     @Override
     public Optional<StoreNode> getWritableNode(String name) {
         return doGeNode(name, BucketConstant.STORE_CLUSTER_WRITABLE_FMT);
@@ -249,5 +223,31 @@ public class ZkVolumeManager implements VolumeManager {
 
     private String buildBucketPath(String name) {
         return String.format(BucketConstant.STORE_CLUSTER_FMT, name);
+    }
+
+    private Optional<StoreNode> doGeNode(String name, String storeClusterFmt) {
+        StoreNode selected = null;
+        LoadBalance<StoreNode> lb = null;
+        mainLock.lock();
+        try {
+            if (!lbTable.contains(name)) {
+                String readableName = String.format(storeClusterFmt, name);
+                Optional<List<StoreNode>> nodeList = getStoreNodes(readableName);
+                if (nodeList.isPresent()) {
+                    LoadBalance<StoreNode> newLb = new VolumeRoundRobinLoadBalance(nodeList.get());
+                    lb = lbTable.putIfAbsent(name, newLb);
+                    if (lb == null) {
+                        lb = newLb;
+                    }
+                } else {
+                    return Optional.empty();
+                }
+            }
+        } finally {
+            mainLock.unlock();
+        }
+
+        selected = lb.selectOne();
+        return selected == null ? Optional.empty() : Optional.of(selected);
     }
 }
