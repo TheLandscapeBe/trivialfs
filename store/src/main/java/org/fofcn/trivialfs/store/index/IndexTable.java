@@ -10,6 +10,7 @@ import org.fofcn.trivialfs.store.common.constant.StoreConstant;
 import org.fofcn.trivialfs.store.common.flush.DefaultFlushStrategyFactory;
 import org.fofcn.trivialfs.store.common.flush.FlushStrategy;
 import org.fofcn.trivialfs.store.common.flush.FlushStrategyConfig;
+import org.fofcn.trivialfs.store.config.StoreConfig;
 import org.fofcn.trivialfs.store.index.pubsub.IndexFileConsumer;
 import org.fofcn.trivialfs.store.pubsub.Broker;
 
@@ -36,9 +37,11 @@ public class IndexTable extends BaseFile {
 
     private final FlushStrategyConfig flushStrategyConfig;
 
-    public IndexTable(File file, final Broker broker,
+    public IndexTable(final File file,
+                      final Broker broker,
+                      final StoreConfig storeConfig,
                       final FlushStrategyConfig flushConfig) {
-        super(file);
+        super(file, storeConfig.getAutoExpandSize(), storeConfig.getMaxBlockFileSize());
         this.broker = broker;
         this.superBlock = new IndexSuperBlock();
         this.flushStrategyConfig = flushConfig;

@@ -6,7 +6,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.data.Stat;
 import org.fofcn.trivialfs.bucket.constant.BucketConstant;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 
@@ -27,7 +27,9 @@ public class ZookeeperClientTest {
         CuratorFramework zkClient = CuratorFrameworkFactory.newClient(hostPort, retryPolicy);
         zkClient.start();
         Stat rootStat = zkClient.checkExists().forPath(BucketConstant.ROOT_PATH);
+        if (rootStat == null) {
+            String str = zkClient.create().forPath(znode, znode.getBytes(StandardCharsets.UTF_8));
+        }
 
-        String str = zkClient.create().forPath(znode, znode.getBytes(StandardCharsets.UTF_8));
     }
 }

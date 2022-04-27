@@ -23,6 +23,13 @@ public interface VolumeManager extends Service {
     boolean create(String name) throws VolumeException;
 
     /**
+     * delete a volume with specific volume name
+     * @param name volume name
+     * @return true if success, false otherwise
+     */
+    boolean delete(String name);
+
+    /**
      * get a readable node list
      * @param name volume name
      * @return
@@ -54,8 +61,10 @@ public interface VolumeManager extends Service {
 
     /**
      * add a readable store node to volume
+     * @param name bucket name
      * @param storeNode store node information
      * @return true if added success, false otherwise
      */
-    boolean addReadableNode(StoreNode storeNode);
+    boolean addReadableNode(String name, StoreNode storeNode);
+
 }

@@ -4,6 +4,7 @@ import org.fofcn.trivialfs.bucket.volume.StoreNode;
 import org.fofcn.trivialfs.bucket.volume.lb.LoadBalance;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * volume load balance algorithm:round robin
@@ -13,14 +14,23 @@ import java.util.List;
  */
 public class VolumeRoundRobinLoadBalance implements LoadBalance<StoreNode> {
 
-    private final List<StoreNode> storeNodeList;
+    private final CopyOnWriteArrayList<StoreNode> storeNodeList = new CopyOnWriteArrayList<>();
+
+    private volatile int curIdx = 0;
 
     public VolumeRoundRobinLoadBalance(List<StoreNode> storeNodeList) {
-        this.storeNodeList = storeNodeList;
+        this.storeNodeList.addAll(storeNodeList);
     }
 
     @Override
     public StoreNode selectOne() {
-        return null;
+        StoreNode selected;
+        synchronized (this) {
+            selected = storeNodeList.get(curIdx++);
+            if (curIdx == storeNodeList.size()) {
+                curIdx = 0;
+            }
+        }
+        return selected;
     }
 }

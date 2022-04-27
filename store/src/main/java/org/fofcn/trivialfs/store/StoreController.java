@@ -47,7 +47,7 @@ public class StoreController {
         String blockFilePath = storeConfig.getBlockPath() + File.separator + "block";
         String indexFilePath = storeConfig.getIndexPath() + File.separator + "index";
         this.blockFile = new BlockFile(new File(blockFilePath), broker, storeConfig, uidGenerator);
-        this.indexTable = new IndexTable(new File(indexFilePath), broker, storeConfig.getFlushConfig());
+        this.indexTable = new IndexTable(new File(indexFilePath), broker, storeConfig, storeConfig.getFlushConfig());
         this.storeServer = new StoreNetworkServer(blockFile, storeConfig.getServerConfig());
         this.clusterManager = new DefaultClusterFactory().getCluster(storeConfig.getClusterConfig(), broker, blockFile);
     }

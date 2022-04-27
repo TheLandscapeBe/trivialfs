@@ -9,6 +9,10 @@ package org.fofcn.trivialfs.netty.util;
 public class ArrayUtil {
 
     public static boolean isEmpty(String[] array) {
-        return array != null && array.length != 0;
+        return array == null || array.length == 0;
+    }
+
+    public static boolean isEmpty(byte[] array) {
+        return array == null || array.length == 0;
     }
 }

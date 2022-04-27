@@ -37,4 +37,9 @@ public class BucketConstant {
      * writable store cluster node formatter
      */
     public static final String STORE_CLUSTER_WRITABLE_NODE_FMT = STORE_CLUSTER_FMT + "/writable/%s";
+
+    /**
+     * zk or etcd path separator character
+     */
+    public static final char PATH_SEPARATOR_CHAR = '/';
 }

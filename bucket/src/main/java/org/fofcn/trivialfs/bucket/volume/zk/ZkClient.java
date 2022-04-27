@@ -1,6 +1,7 @@
 package org.fofcn.trivialfs.bucket.volume.zk;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -10,17 +11,25 @@ import org.apache.curator.framework.api.transaction.TransactionOp;
 import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 import org.fofcn.trivialfs.bucket.config.ZkClientConfig;
 import org.fofcn.trivialfs.bucket.exception.VolumeException;
 import org.fofcn.trivialfs.common.Service;
+import org.fofcn.trivialfs.netty.util.ArrayUtil;
 import org.fofcn.trivialfs.netty.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.fofcn.trivialfs.bucket.constant.BucketConstant.PATH_SEPARATOR_CHAR;
 
 /**
  * Zookeeper client
@@ -70,7 +79,7 @@ public class ZkClient implements Service {
         }
     }
 
-    public CuratorOp transCreate(TransactionOp transOp, String path, byte[] data) {
+    public CuratorOp mkDirs(TransactionOp transOp, String path, byte[] data) {
         try {
             return data == null ? transOp.create().forPath(path) :
                     transOp.create().forPath(path, data);
@@ -116,9 +125,14 @@ public class ZkClient implements Service {
     }
 
 
-    public List<String> getChildren(String nodePath) {
+    public Optional<List<String>> getChildren(String nodePath) {
         try {
-             return zkClient.getChildren().forPath(nodePath);
+            if (zkClient.checkExists().forPath(nodePath) == null) {
+                return Optional.empty();
+            }
+
+            List<String> children = zkClient.getChildren().forPath(nodePath);
+            return CollectionUtils.isEmpty(children) ? Optional.empty() : Optional.of(children);
         } catch (Exception e) {
             throw new VolumeException(e);
         }
@@ -134,30 +148,20 @@ public class ZkClient implements Service {
 
     /**
      * create multiple children node with specified parent node using transaction
-     * @param parent parent node name
-     * @param children children nodes of parent
+     * @param nodes node list
+     * @return true if transaction success otherwise false
      */
-    public boolean transCreate(String parent, String... children) {
-        if (StringUtil.isEmpty(parent)) {
-            throw new VolumeException("parent can not be null");
+    public boolean mkDirs(String... nodes) {
+        if (ArrayUtil.isEmpty(nodes)) {
+            return false;
         }
 
-        List<CuratorOp> curatorOpList = new ArrayList<>();
         try {
-            TransactionOp transOp = createTransaction();
-            // create parent node
-            CuratorOp parentOp = transOp.create().forPath(parent);
-            curatorOpList.add(parentOp);
-
             // create children node.
-            if (children != null) {
-                for (String child : children) {
-                    CuratorOp childOp = transOp.create().forPath(parent + '/' + child);
-                    curatorOpList.add(childOp);
-                }
+            for (String node : nodes) {
+                ZKPaths.mkdirs(zkClient.getZookeeperClient().getZooKeeper(), node);
             }
-
-           return executeTrans(curatorOpList);
+            return true;
         } catch (Exception e) {
             throw new VolumeException(e);
         }
@@ -188,6 +192,9 @@ public class ZkClient implements Service {
      * @return true if execute success, false otherwise
      */
     public boolean executeTrans(List<CuratorOp> curatorOpList) {
+        if (CollectionUtils.isEmpty(curatorOpList)) {
+            return true;
+        }
         // execute transaction
         try {
             List<CuratorTransactionResult> transResults = zkClient.transaction().forOperations(curatorOpList);
@@ -212,6 +219,7 @@ public class ZkClient implements Service {
             if (lock == null) {
                 InterProcessLock newLock = new InterProcessMutex(zkClient, path);
                 lockTable.put(path, newLock);
+                lock = newLock;
             }
             lock.acquire();
             return true;
@@ -255,4 +263,36 @@ public class ZkClient implements Service {
         zkClient.close();
     }
 
+    private List<CuratorOp> mkDirs(TransactionOp transOp, String node) throws Exception {
+        List<CuratorOp> curatorOpList = new ArrayList<>();
+        int pos = 0;
+        boolean last = true;
+        do {
+            pos = node.indexOf(PATH_SEPARATOR_CHAR, pos + 1);
+            if (pos == -1) {
+                if (last) {
+                    pos = node.length();
+                    last = false;
+                } else {
+                    break;
+                }
+            }
+
+            String subPath = node.substring(0, pos);
+            if (zkClient.checkExists().forPath(subPath) == null) {
+                CuratorOp nodeOp = transOp.create().forPath(node);
+                curatorOpList.add(nodeOp);
+            }
+        } while (pos < node.length());
+
+        return curatorOpList;
+    }
+
+    public void deleteParent(String path) {
+        try {
+            ZKPaths.deleteChildren(zkClient.getZookeeperClient().getZooKeeper(), path, true);
+        } catch (Exception e) {
+            throw new VolumeException(e);
+        }
+    }
 }
