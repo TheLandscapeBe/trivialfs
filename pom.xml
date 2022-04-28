@@ -47,6 +47,7 @@
         <module>proto</module>
         <module>web</module>
         <module>rpc</module>
+        <module>coordinate</module>
     </modules>
 
     <properties>

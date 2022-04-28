@@ -4,13 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.curator.framework.api.transaction.CuratorOp;
 import org.apache.curator.framework.api.transaction.TransactionOp;
-import org.fofcn.trivialfs.bucket.config.ZkClientConfig;
 import org.fofcn.trivialfs.bucket.constant.BucketConstant;
-import org.fofcn.trivialfs.bucket.exception.VolumeException;
 import org.fofcn.trivialfs.bucket.volume.StoreNode;
 import org.fofcn.trivialfs.bucket.volume.VolumeManager;
 import org.fofcn.trivialfs.bucket.volume.lb.LoadBalance;
 import org.fofcn.trivialfs.bucket.volume.lb.impl.VolumeRoundRobinLoadBalance;
+import org.fofcn.trivialfs.coordinate.exception.CoordinateException;
+import org.fofcn.trivialfs.coordinate.zk.ZkClient;
+import org.fofcn.trivialfs.coordinate.zk.ZkClientConfig;
 import org.fofcn.trivialfs.netty.util.ArrayUtil;
 import org.fofcn.trivialfs.netty.util.NetworkSerializable;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -46,13 +47,21 @@ public class ZkVolumeManager implements VolumeManager {
         // check if root bucket name is existing
         // if exists do nothing
         // else create root bucket
-        boolean root = zkClient.createIfNotExisting(BucketConstant.ROOT_PATH);
-        if (!root) {
-            log.error("error create root path: <{}>", BucketConstant.ROOT_PATH);
-            return false;
+        boolean root = false;
+        try {
+            root = zkClient.createIfNotExisting(BucketConstant.ROOT_PATH);
+            if (!root) {
+                log.error("error create root path: <{}>", BucketConstant.ROOT_PATH);
+                return false;
+            }
+            log.info("create root path: <{}>", BucketConstant.ROOT_PATH);
+            return true;
+
+        } catch (CoordinateException e) {
+            log.info("Initialize coordinate error.", e);
         }
-        log.info("create root path: <{}>", BucketConstant.ROOT_PATH);
-        return true;
+
+        return false;
     }
 
     @Override
@@ -72,7 +81,7 @@ public class ZkVolumeManager implements VolumeManager {
             String readableName = String.format(BucketConstant.STORE_CLUSTER_READABLE_FMT, name);
             String writableName = String.format(BucketConstant.STORE_CLUSTER_WRITABLE_FMT, name);
             zkClient.mkDirs(readableName, writableName);
-        } catch (VolumeException e) {
+        } catch (CoordinateException e) {
             log.error("error create bucket, name: <{}>", name, e);
             return false;
         }
@@ -84,7 +93,7 @@ public class ZkVolumeManager implements VolumeManager {
         String path = buildBucketPath(name);
         try {
             zkClient.deleteParent(path);
-        } catch (VolumeException e) {
+        } catch (CoordinateException e) {
             log.error("delete path error.", e);
             return false;
         }
@@ -140,8 +149,13 @@ public class ZkVolumeManager implements VolumeManager {
 
                 // commit the transaction
                 return zkClient.executeTrans(transOpList);
+            } catch (CoordinateException e) {
+                log.error("Add writable store node error. ", e);
             } finally {
-                zkClient.unlock(bucketPath);
+                try {
+                    zkClient.unlock(bucketPath);
+                } catch (CoordinateException ignore) {
+                }
             }
         }
 
@@ -183,8 +197,13 @@ public class ZkVolumeManager implements VolumeManager {
 
                 // commit the transaction
                 return zkClient.executeTrans(transOpList);
+            } catch (CoordinateException e) {
+                log.error("Add writable store node error.", e);
             } finally {
-                zkClient.unlock(bucketPath);
+                try {
+                    zkClient.unlock(bucketPath);
+                } catch (CoordinateException ignore) {
+                }
             }
         }
 
@@ -192,22 +211,27 @@ public class ZkVolumeManager implements VolumeManager {
     }
 
     private Optional<List<StoreNode>> getStoreNodes(String path) {
-        Optional<List<String>> nodeList = zkClient.getChildren(path);
-        if (!nodeList.isPresent()) {
-            return Optional.empty();
-        }
-
-        List<StoreNode> storeNodeList = new ArrayList<>();
-        for (String node : nodeList.get()) {
-            String nodePath = path + '/' + node;
-            byte[] nodeData = zkClient.getNodeData(nodePath);
-            if (ArrayUtil.isEmpty(nodeData)) {
-                log.warn("Data of the node:<{}> is empty.", nodePath);
-                continue;
-            } else {
-                StoreNode storeNode = NetworkSerializable.jsonDecode(nodeData, StoreNode.class);
-                storeNodeList.add(storeNode);
+        List<StoreNode> storeNodeList = null;
+        try {
+            Optional<List<String>> nodeList = zkClient.getChildren(path);
+            if (!nodeList.isPresent()) {
+                return Optional.empty();
             }
+
+            storeNodeList = new ArrayList<>();
+            for (String node : nodeList.get()) {
+                String nodePath = path + '/' + node;
+                byte[] nodeData = zkClient.getNodeData(nodePath);
+                if (ArrayUtil.isEmpty(nodeData)) {
+                    log.warn("Data of the node:<{}> is empty.", nodePath);
+                    continue;
+                } else {
+                    StoreNode storeNode = NetworkSerializable.jsonDecode(nodeData, StoreNode.class);
+                    storeNodeList.add(storeNode);
+                }
+            }
+        } catch (CoordinateException e) {
+            log.error("Get store node error.", e);
         }
 
         return CollectionUtils.isEmpty(storeNodeList) ? Optional.empty() : Optional.of(storeNodeList);

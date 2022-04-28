@@ -1,6 +1,7 @@
 package org.fofcn.trivialfs.bucket.config;
 
 import lombok.Data;
+import org.fofcn.trivialfs.coordinate.zk.ZkClientConfig;
 import org.fofcn.trivialfs.netty.config.NettyServerConfig;
 
 /**

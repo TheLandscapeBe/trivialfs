@@ -1,4 +1,4 @@
-package org.fofcn.trivialfs.bucket.config;
+package org.fofcn.trivialfs.coordinate.zk;
 
 import lombok.Data;
 
