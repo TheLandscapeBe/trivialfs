@@ -159,7 +159,7 @@ public class ZkClient implements Service {
         try {
             // create children node.
             for (String node : nodes) {
-                ZKPaths.mkdirs(zkClient.getZookeeperClient().getZooKeeper(), node);
+                ZKPaths.mkdirs(zkClient.getZookeeperClient().getZooKeeper(), node, true);
             }
             return true;
         } catch (Exception e) {

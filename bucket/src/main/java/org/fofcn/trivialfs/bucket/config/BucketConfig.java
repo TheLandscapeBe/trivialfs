@@ -12,7 +12,12 @@ import org.fofcn.trivialfs.netty.config.NettyServerConfig;
 @Data
 public class BucketConfig {
 
-    private NettyServerConfig nettyServerConfig;
+    private NettyServerConfig serverConfig;
+
+    /**
+     * coordinate type
+     */
+    private String coordinateType;
 
     /**
      * configuration of zookeeper

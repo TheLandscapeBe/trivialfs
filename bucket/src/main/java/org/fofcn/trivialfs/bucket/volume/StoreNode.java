@@ -2,6 +2,8 @@ package org.fofcn.trivialfs.bucket.volume;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * storage node information
  *
@@ -12,13 +14,23 @@ import lombok.Data;
 public class StoreNode {
 
     /**
-     * 对等端Id
+     * identity string
      */
     private String peerId;
 
     /**
-     * 地址
+     * node address, address format: ip:port, such as 127.0.0.1:60000
      */
     private String address;
 
+    /**
+     * master identity
+     * if peer id equals master id,then the store node is master
+     */
+    private String masterId;
+
+    /**
+     * slave list
+     */
+    List<StoreNode> slaveList;
 }
