@@ -1,9 +1,9 @@
 package com.fofcn.trivivalfs.bucket.volumn.zk;
 
 import lombok.extern.slf4j.Slf4j;
-import org.fofcn.trivialfs.bucket.config.ZkClientConfig;
-import org.fofcn.trivialfs.bucket.volume.StoreNode;
+import org.fofcn.trivialfs.coordinate.StoreNode;
 import org.fofcn.trivialfs.bucket.volume.zk.ZkVolumeManager;
+import org.fofcn.trivialfs.coordinate.zk.ZkClientConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

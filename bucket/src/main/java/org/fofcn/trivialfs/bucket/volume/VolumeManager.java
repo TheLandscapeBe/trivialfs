@@ -2,8 +2,8 @@ package org.fofcn.trivialfs.bucket.volume;
 
 import org.fofcn.trivialfs.bucket.exception.VolumeException;
 import org.fofcn.trivialfs.common.Service;
+import org.fofcn.trivialfs.coordinate.StoreNode;
 
-import java.util.List;
 import java.util.Optional;
 
 /**

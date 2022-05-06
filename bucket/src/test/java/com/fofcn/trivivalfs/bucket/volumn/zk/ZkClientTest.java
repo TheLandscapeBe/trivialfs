@@ -1,6 +1,6 @@
 package com.fofcn.trivivalfs.bucket.volumn.zk;
 
-import org.fofcn.trivialfs.bucket.volume.zk.ZkClient;
+import org.fofcn.trivialfs.coordinate.zk.ZkClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 

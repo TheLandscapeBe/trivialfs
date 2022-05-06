@@ -1,4 +1,4 @@
-package org.fofcn.trivialfs.bucket.constant;
+package org.fofcn.trivialfs.coordinate.constant;
 
 /**
  * bucket constant definition

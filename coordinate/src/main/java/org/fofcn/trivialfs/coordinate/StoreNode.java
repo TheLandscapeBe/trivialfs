@@ -1,4 +1,4 @@
-package org.fofcn.trivialfs.bucket.volume;
+package org.fofcn.trivialfs.coordinate;
 
 import lombok.Data;
 

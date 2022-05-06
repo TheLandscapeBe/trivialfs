@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Vue 测试实例 - 菜鸟教程(runoob.com)</title>
+    <script src="https://unpkg.com/vue@2.6.14/dist/vue.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <p>{{ message }}</p>
+</div>
+
+<div id="vue_det">
+    <h1>site:{{site}}</h1>
+    <h1>url:{{url}}</h1>
+    <h1>{{details()}}</h1>
+</div>
+
+<div id="vHtml">
+    <div v-html="message"></div>
+</div>
+
+<div id="vIf">
+    <p v-if="seen">现在你看到我了</p>
+    <template v-if="ok">
+        <h1>a</h1>
+        <p>b</p>
+        <p>c</p>
+    </template>
+
+    {{#if ok}}
+        <h1>Yes</h1>
+    {{/if}}
+</div>
+
+<script>
+    const vIf = new Vue({
+        el: '#vIf',
+        data: {
+            seen: true,
+            ok: true
+        }
+    })
+    new Vue({
+        el: '#app',
+        data: {
+            message: 'Hello Vue.js!'
+        }
+    })
+
+    var vm = new Vue({
+        el: '#vue_det',
+        data: {
+            site: 'vue学习',
+            url: 'github.com',
+            alexa: "1000"
+        },
+        methods: {
+            details: function() {
+                return this.site + 'aaaa'
+            }
+        }
+    })
+
+    const vHtml = new Vue({
+        el: '#vHtml',
+        data: {
+            message: '<h1>Vue学习</h1>'
+        }
+    })
+</script>
+</body>
+</html>

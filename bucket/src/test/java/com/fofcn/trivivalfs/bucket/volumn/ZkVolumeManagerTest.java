@@ -1,7 +1,7 @@
 package com.fofcn.trivivalfs.bucket.volumn;
 
-import org.fofcn.trivialfs.bucket.config.ZkClientConfig;
 import org.fofcn.trivialfs.bucket.volume.zk.ZkVolumeManager;
+import org.fofcn.trivialfs.coordinate.zk.ZkClientConfig;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

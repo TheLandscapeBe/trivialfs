@@ -1,9 +1,8 @@
 package org.fofcn.trivialfs.bucket.volume.etcd;
 
-import org.fofcn.trivialfs.bucket.volume.StoreNode;
+import org.fofcn.trivialfs.coordinate.StoreNode;
 import org.fofcn.trivialfs.bucket.volume.VolumeManager;
 
-import java.util.List;
 import java.util.Optional;
 
 /**

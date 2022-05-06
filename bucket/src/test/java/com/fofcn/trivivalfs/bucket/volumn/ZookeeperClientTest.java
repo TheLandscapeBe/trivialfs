@@ -5,7 +5,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.data.Stat;
-import org.fofcn.trivialfs.bucket.constant.BucketConstant;
+import org.fofcn.trivialfs.coordinate.constant.BucketConstant;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;

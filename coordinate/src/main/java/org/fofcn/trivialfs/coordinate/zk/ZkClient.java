@@ -35,6 +35,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ZkClient implements Service {
 
     private static final String PATH_SEPARATOR_CHAR = "/";
+
     private final CuratorFramework zkClient;
 
     private final ConcurrentHashMap<String, InterProcessLock> lockTable = new ConcurrentHashMap<>(2);

@@ -1,6 +1,6 @@
 package org.fofcn.trivialfs.bucket.volume.lb.impl;
 
-import org.fofcn.trivialfs.bucket.volume.StoreNode;
+import org.fofcn.trivialfs.coordinate.StoreNode;
 import org.fofcn.trivialfs.bucket.volume.lb.LoadBalance;
 
 import java.util.List;

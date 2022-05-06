@@ -52,15 +52,24 @@ message DeleteBucketRequest {
   string name = 1;
 }
 
+/**
+ * 删除bucket响应
+ */
 message DeleteBucketReply {
   string name = 1;
 }
 
+/**
+ * get store node request
+ */
 message GetStoreNodeRequest {
   string name = 1;
   int32 readWrite = 2;
 }
 
+/**
+ * get store node reply
+ */
 message GetStoreNodeReply {
   string peerId = 1;
   string address = 2;

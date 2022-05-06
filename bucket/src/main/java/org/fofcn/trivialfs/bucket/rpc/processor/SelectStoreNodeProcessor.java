@@ -2,7 +2,7 @@ package org.fofcn.trivialfs.bucket.rpc.processor;
 
 import com.fofcn.trivialfs.netty.NettyProtos;
 import org.fofcn.trivialfs.bucket.constant.ReadWriteEnum;
-import org.fofcn.trivialfs.bucket.volume.StoreNode;
+import org.fofcn.trivialfs.coordinate.StoreNode;
 import org.fofcn.trivialfs.bucket.volume.VolumeManager;
 import org.fofcn.trivialfs.netty.BucketProtos;
 import org.fofcn.trivialfs.netty.enums.ResponseCode;

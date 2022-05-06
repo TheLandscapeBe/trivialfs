@@ -1,62 +1,156 @@
 package org.fofcn.trivialfs.store.bucket;
 
 import lombok.extern.slf4j.Slf4j;
-import org.fofcn.trivialfs.common.DiskUtil;
+import org.apache.curator.framework.api.transaction.CuratorOp;
+import org.apache.curator.framework.api.transaction.TransactionOp;
 import org.fofcn.trivialfs.common.Service;
-import org.fofcn.trivialfs.common.thread.PoolHelper;
-import org.fofcn.trivialfs.netty.config.NettyClientConfig;
-import org.fofcn.trivialfs.netty.netty.NettyNetworkClient;
-import org.fofcn.trivialfs.store.config.StoreConfig;
-import org.fofcn.trivialfs.store.disk.DiskManager;
+import org.fofcn.trivialfs.coordinate.StoreNode;
+import org.fofcn.trivialfs.coordinate.constant.BucketConstant;
+import org.fofcn.trivialfs.coordinate.exception.CoordinateException;
+import org.fofcn.trivialfs.coordinate.zk.ZkClient;
+import org.fofcn.trivialfs.netty.util.NetworkSerializable;
+import org.fofcn.trivialfs.store.config.BucketConfig;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- *
+ * bucket manager
  *
  * @author errorfatal89@gmail.com
- * @datetime 2022/03/29 12:19
+ * @datetime 2022/05/06 16:02
  */
 @Slf4j
 public class BucketManager implements Service {
-    private final NettyNetworkClient networkClient;
-    private final StoreConfig storeConfig;
-    private final ScheduledThreadPoolExecutor timer = PoolHelper.newScheduledExecutor(DiskManager.class.getName(), "disk-manager", 1);
 
-    public BucketManager(StoreConfig storeConfig) {
-        this.storeConfig = storeConfig;
-        // todo 配置
-        NettyClientConfig clientConfig = new NettyClientConfig();
-        this.networkClient = new NettyNetworkClient(clientConfig);
+    private final BucketConfig bucketConfig;
 
+    private final ZkClient zkClient;
+
+    public BucketManager(BucketConfig bucketConfig) {
+        this.bucketConfig = bucketConfig;
+        this.zkClient = new ZkClient(bucketConfig.getZkConfig());
     }
 
     @Override
     public boolean init() {
-        // 心跳上报硬盘数据与是否可写
-        timer.scheduleAtFixedRate(() -> {
-            try {
-                Map<String, Long> diskInfo = DiskUtil.getDiskSpace(storeConfig.getBlockPath());
-
-            } catch (IOException e) {
-                log.error("get disk space error", e);
-            }
-
-
-        }, 0, 500, TimeUnit.MILLISECONDS);
+        zkClient.start();
         return false;
     }
 
     @Override
     public void start() {
-
+        // register self to bucket store node list
     }
 
     @Override
     public void shutdown() {
-
+        zkClient.shutdown();
     }
+
+    private boolean addWritableNode(String name, StoreNode storeNode) {
+        // use distribute lock
+        String bucketPath = buildBucketPath(name);
+        if (zkClient.lock(bucketPath)) {
+            try {
+                // check node if existing, if existing we do nothing and return true
+                // otherwise we will create a node
+                String writablePath = buildWritablePath(name, storeNode.getPeerId());
+                String readablePath = buildReadablePath(name, storeNode.getPeerId());
+                boolean readableExists = zkClient.exists(readablePath);
+                boolean writableExists = zkClient.exists(writablePath);
+                byte[] nodeData = NetworkSerializable.jsonEncode(storeNode);
+                // start a transaction
+                List<CuratorOp> transOpList = new ArrayList<>(2);
+                TransactionOp trans = zkClient.createTransaction();
+
+                // if writable node exists, we will update its node data;
+                // otherwise we should create the node and set node data.
+                if (!writableExists) {
+                    zkClient.mkDirs(writablePath);
+                }
+                CuratorOp upDataOp = zkClient.transUpData(trans, writablePath, nodeData);
+                transOpList.add(upDataOp);
+
+                // if readable node exists, we should delete the readable node;
+                // otherwise we do nothing.
+                if (readableExists) {
+                    CuratorOp readableOp = zkClient.transDel(trans, readablePath);
+                    transOpList.add(readableOp);
+                }
+
+                // commit the transaction
+                return zkClient.executeTrans(transOpList);
+            } catch (CoordinateException e) {
+                log.error("Add writable store node error. ", e);
+            } finally {
+                try {
+                    zkClient.unlock(bucketPath);
+                } catch (CoordinateException ignore) {
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean addReadableNode(String name, StoreNode storeNode) {
+        // use distribute lock
+        String bucketPath = buildBucketPath(name);
+        if (zkClient.lock(bucketPath)) {
+            try {
+                // check node if existing, if existing we do nothing and return true
+                // otherwise we will create a node
+                String writablePath = buildWritablePath(name, storeNode.getPeerId());
+                String readablePath = buildReadablePath(name, storeNode.getPeerId());
+                boolean readableExists = zkClient.exists(readablePath);
+                boolean writableExists = zkClient.exists(writablePath);
+                byte[] nodeData = NetworkSerializable.jsonEncode(storeNode);
+                // start a transaction
+                List<CuratorOp> transOpList = new ArrayList<>(2);
+                TransactionOp trans = zkClient.createTransaction();
+
+                // if readable node exists, we will update its node data;
+                // otherwise we should create the node and set node data.
+                if (!readableExists) {
+                    zkClient.mkDirs(readablePath);
+                }
+
+                CuratorOp upDataOp = zkClient.transUpData(trans, readablePath, nodeData);
+                transOpList.add(upDataOp);
+
+                // if readable node exists, we should delete the readable node;
+                // otherwise we do nothing.
+                if (writableExists) {
+                    CuratorOp readableOp = zkClient.transDel(trans, writablePath);
+                    transOpList.add(readableOp);
+                }
+
+                // commit the transaction
+                return zkClient.executeTrans(transOpList);
+            } catch (CoordinateException e) {
+                log.error("Add writable store node error.", e);
+            } finally {
+                try {
+                    zkClient.unlock(bucketPath);
+                } catch (CoordinateException ignore) {
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private String buildWritablePath(String name, String peerId) {
+        return String.format(BucketConstant.STORE_CLUSTER_WRITABLE_NODE_FMT, name, peerId);
+    }
+
+    private String buildReadablePath(String name, String peerId) {
+        return String.format(BucketConstant.STORE_CLUSTER_READABLE_NODE_FMT, name, peerId);
+    }
+
+    private String buildBucketPath(String name) {
+        return String.format(BucketConstant.STORE_CLUSTER_FMT, name);
+    }
+
 }
