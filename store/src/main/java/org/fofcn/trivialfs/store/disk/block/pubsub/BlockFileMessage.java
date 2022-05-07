@@ -1,4 +1,4 @@
-package org.fofcn.trivialfs.store.block.pubsub;
+package org.fofcn.trivialfs.store.disk.block.pubsub;
 
 
 import lombok.Data;

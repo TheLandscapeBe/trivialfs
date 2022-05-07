@@ -1,7 +1,7 @@
-package org.fofcn.trivialfs.store.block.pubsub;
+package org.fofcn.trivialfs.store.disk.block.pubsub;
 
 
-import org.fofcn.trivialfs.store.block.FileHeader;
+import org.fofcn.trivialfs.store.disk.block.FileHeader;
 import org.fofcn.trivialfs.store.pubsub.Broker;
 import org.fofcn.trivialfs.store.pubsub.DefaultProducer;
 

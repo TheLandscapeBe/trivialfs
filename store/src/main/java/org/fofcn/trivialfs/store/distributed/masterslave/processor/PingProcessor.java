@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import org.fofcn.trivialfs.netty.enums.ResponseCode;
 import org.fofcn.trivialfs.netty.netty.NetworkCommand;
 import org.fofcn.trivialfs.netty.processor.NettyRequestProcessor;
-import org.fofcn.trivialfs.store.block.BlockFile;
+import org.fofcn.trivialfs.store.disk.block.BlockFile;
 import org.fofcn.trivialfs.store.distributed.masterslave.MasterSlaveClusterImpl;
 
 /**

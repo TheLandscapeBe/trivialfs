@@ -1,8 +1,8 @@
-package org.fofcn.trivialfs.store.index.pubsub;
+package org.fofcn.trivialfs.store.disk.index.pubsub;
 
-import org.fofcn.trivialfs.store.block.pubsub.BlockFileMessage;
-import org.fofcn.trivialfs.store.index.IndexNode;
-import org.fofcn.trivialfs.store.index.IndexTable;
+import org.fofcn.trivialfs.store.disk.block.pubsub.BlockFileMessage;
+import org.fofcn.trivialfs.store.disk.index.IndexNode;
+import org.fofcn.trivialfs.store.disk.index.IndexTable;
 import org.fofcn.trivialfs.store.pubsub.Consumer;
 import org.fofcn.trivialfs.store.pubsub.Message;
 

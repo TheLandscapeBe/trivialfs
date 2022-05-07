@@ -3,16 +3,20 @@ package org.fofcn.trivialfs.store.disk;
 
 import org.fofcn.trivialfs.common.Service;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 /**
- * 硬盘管理
+ * Disk manager
  *
  * @author errorfatal89@gmail.com
  * @datetime 2022/03/29 12:20
  */
-public class DiskManager implements Service {
+public class DiskFileQueue<T> implements Service {
 
+    private final CopyOnWriteArrayList<T> diskFiles = new CopyOnWriteArrayList<>();
 
-    public DiskManager() {
+    public DiskFileQueue() {
 
     }
 
@@ -24,7 +28,6 @@ public class DiskManager implements Service {
 
     @Override
     public void start() {
-
     }
 
     @Override

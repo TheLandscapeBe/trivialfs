@@ -1,9 +1,9 @@
-package org.fofcn.trivialfs.store.block;
+package org.fofcn.trivialfs.store.disk.block;
 
 import lombok.extern.slf4j.Slf4j;
 import org.fofcn.trivialfs.common.R;
 import org.fofcn.trivialfs.common.RWrapper;
-import org.fofcn.trivialfs.store.block.pubsub.BlockFileProducer;
+import org.fofcn.trivialfs.store.disk.block.pubsub.BlockFileProducer;
 import org.fofcn.trivialfs.store.common.AppendResult;
 import org.fofcn.trivialfs.store.common.BaseFile;
 import org.fofcn.trivialfs.store.common.constant.StoreConstant;

@@ -5,7 +5,7 @@ import com.fofcn.trivialfs.netty.NettyProtos;
 import com.google.protobuf.ByteString;
 import org.fofcn.trivialfs.netty.enums.ResponseCode;
 import org.fofcn.trivialfs.netty.netty.NetworkCommand;
-import org.fofcn.trivialfs.store.block.FileBlock;
+import org.fofcn.trivialfs.store.disk.block.FileBlock;
 import org.fofcn.trivialfs.store.distributed.masterslave.longpoll.LongPollCallback;
 
 /**

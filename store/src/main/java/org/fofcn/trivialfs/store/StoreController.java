@@ -1,14 +1,14 @@
 package org.fofcn.trivialfs.store;
 
 import lombok.extern.slf4j.Slf4j;
-import org.fofcn.trivialfs.store.block.BlockFile;
+import org.fofcn.trivialfs.store.disk.block.BlockFile;
 import org.fofcn.trivialfs.store.config.StoreConfig;
 import org.fofcn.trivialfs.store.distributed.ClusterManager;
 import org.fofcn.trivialfs.store.distributed.DefaultClusterFactory;
 import org.fofcn.trivialfs.store.guid.UidEnum;
 import org.fofcn.trivialfs.store.guid.UidFactory;
 import org.fofcn.trivialfs.store.guid.UidGenerator;
-import org.fofcn.trivialfs.store.index.IndexTable;
+import org.fofcn.trivialfs.store.disk.index.IndexTable;
 import org.fofcn.trivialfs.store.network.StoreNetworkServer;
 import org.fofcn.trivialfs.store.pubsub.Broker;
 import org.fofcn.trivialfs.store.pubsub.DefaultBroker;

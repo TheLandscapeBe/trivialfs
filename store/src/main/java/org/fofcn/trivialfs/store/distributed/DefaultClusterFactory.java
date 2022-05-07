@@ -1,7 +1,7 @@
 package org.fofcn.trivialfs.store.distributed;
 
 
-import org.fofcn.trivialfs.store.block.BlockFile;
+import org.fofcn.trivialfs.store.disk.block.BlockFile;
 import org.fofcn.trivialfs.store.config.ClusterConfig;
 import org.fofcn.trivialfs.store.distributed.masterslave.MasterSlaveClusterImpl;
 import org.fofcn.trivialfs.store.pubsub.Broker;

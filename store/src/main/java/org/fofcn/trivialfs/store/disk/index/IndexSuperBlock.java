@@ -1,4 +1,4 @@
-package org.fofcn.trivialfs.store.index;
+package org.fofcn.trivialfs.store.disk.index;
 
 import lombok.Data;
 import org.fofcn.trivialfs.store.common.Codec;

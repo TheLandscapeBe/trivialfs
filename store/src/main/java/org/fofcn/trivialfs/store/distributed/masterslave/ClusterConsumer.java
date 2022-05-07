@@ -1,9 +1,9 @@
 package org.fofcn.trivialfs.store.distributed.masterslave;
 
 
-import org.fofcn.trivialfs.store.block.BlockFile;
-import org.fofcn.trivialfs.store.block.FileBlock;
-import org.fofcn.trivialfs.store.block.pubsub.BlockFileMessage;
+import org.fofcn.trivialfs.store.disk.block.BlockFile;
+import org.fofcn.trivialfs.store.disk.block.FileBlock;
+import org.fofcn.trivialfs.store.disk.block.pubsub.BlockFileMessage;
 import org.fofcn.trivialfs.store.distributed.masterslave.longpoll.LongPolling;
 import org.fofcn.trivialfs.store.pubsub.Consumer;
 import org.fofcn.trivialfs.store.pubsub.Message;

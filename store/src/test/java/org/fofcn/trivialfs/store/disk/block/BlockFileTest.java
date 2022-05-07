@@ -1,4 +1,4 @@
-package org.fofcn.trivialfs.store.block;//package com.github.futurefs.store.block;
+package org.fofcn.trivialfs.store.disk.block;//package com.github.futurefs.store.block;
 //
 //import com.github.futurefs.netty.ResultCode;
 //import com.github.futurefs.store.common.AppendResult;

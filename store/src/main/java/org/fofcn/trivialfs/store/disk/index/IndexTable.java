@@ -1,4 +1,4 @@
-package org.fofcn.trivialfs.store.index;
+package org.fofcn.trivialfs.store.disk.index;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.ObjectUtils;
@@ -11,7 +11,7 @@ import org.fofcn.trivialfs.store.common.flush.DefaultFlushStrategyFactory;
 import org.fofcn.trivialfs.store.common.flush.FlushStrategy;
 import org.fofcn.trivialfs.store.common.flush.FlushStrategyConfig;
 import org.fofcn.trivialfs.store.config.StoreConfig;
-import org.fofcn.trivialfs.store.index.pubsub.IndexFileConsumer;
+import org.fofcn.trivialfs.store.disk.index.pubsub.IndexFileConsumer;
 import org.fofcn.trivialfs.store.pubsub.Broker;
 
 import java.io.File;

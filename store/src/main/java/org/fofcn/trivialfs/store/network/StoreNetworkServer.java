@@ -6,7 +6,7 @@ import org.fofcn.trivialfs.common.thread.PoolHelper;
 import org.fofcn.trivialfs.netty.NetworkServer;
 import org.fofcn.trivialfs.netty.config.NettyServerConfig;
 import org.fofcn.trivialfs.netty.netty.NettyNetworkServer;
-import org.fofcn.trivialfs.store.block.BlockFile;
+import org.fofcn.trivialfs.store.disk.block.BlockFile;
 
 import java.util.concurrent.ThreadPoolExecutor;
 

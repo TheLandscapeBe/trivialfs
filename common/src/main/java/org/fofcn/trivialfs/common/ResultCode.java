@@ -10,4 +10,6 @@ public interface ResultCode {
     int SUCCESS = 0;
 
     int FAIL = 1;
+
+
 }

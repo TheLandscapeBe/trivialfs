@@ -1,4 +1,4 @@
-package org.fofcn.trivialfs.store.block;
+package org.fofcn.trivialfs.store.disk.block;
 
 import lombok.Data;
 import org.fofcn.trivialfs.store.common.constant.StoreConstant;
