@@ -10,6 +10,7 @@ message BucketRequest {
       CreateBucketRequest create = 1;
       GetBucketRequest get = 2;
       DeleteBucketRequest delete = 3;
+      GetStoreNodeRequest getStoreNode = 4;
   }
 }
 
@@ -18,6 +19,7 @@ message BucketReply {
     CreateBucketReply create = 1;
     GetBucketReply get = 2;
     DeleteBucketReply delete = 3;
+    GetStoreNodeReply getStoreNode = 4;
   }
 }
 
@@ -50,8 +52,26 @@ message DeleteBucketRequest {
   string name = 1;
 }
 
+/**
+ * 删除bucket响应
+ */
 message DeleteBucketReply {
   string name = 1;
 }
 
+/**
+ * get store node request
+ */
+message GetStoreNodeRequest {
+  string name = 1;
+  int32 readWrite = 2;
+}
+
+/**
+ * get store node reply
+ */
+message GetStoreNodeReply {
+  string peerId = 1;
+  string address = 2;
+}
 

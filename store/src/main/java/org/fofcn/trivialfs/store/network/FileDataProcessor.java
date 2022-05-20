@@ -7,10 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.fofcn.trivialfs.netty.enums.ResponseCode;
 import org.fofcn.trivialfs.netty.netty.NetworkCommand;
 import org.fofcn.trivialfs.netty.processor.NettyRequestProcessor;
-import org.fofcn.trivialfs.store.block.BlockFile;
-import org.fofcn.trivialfs.store.block.FileBlock;
-import org.fofcn.trivialfs.store.block.FileHeader;
-import org.fofcn.trivialfs.store.block.FileTailor;
+import org.fofcn.trivialfs.store.disk.block.BlockFile;
+import org.fofcn.trivialfs.store.disk.block.FileBlock;
+import org.fofcn.trivialfs.store.disk.block.FileHeader;
+import org.fofcn.trivialfs.store.disk.block.FileTailor;
 import org.fofcn.trivialfs.store.common.AppendResult;
 
 import java.util.Random;

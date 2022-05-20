@@ -2,7 +2,7 @@ package org.fofcn.trivialfs.store.distributed.masterslave;
 
 import io.netty.channel.ChannelHandlerContext;
 import lombok.Data;
-import org.fofcn.trivialfs.store.block.BlockFile;
+import org.fofcn.trivialfs.store.disk.block.BlockFile;
 
 /**
  * 长轮询参数

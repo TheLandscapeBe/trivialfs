@@ -69,7 +69,7 @@ public class BaseFileQueue {
                         continue;
                     }
 
-                    BaseFile baseFile = new BaseFile(storeFile);
+                    BaseFile baseFile = new BaseFile(storeFile, 0, 0);
                     boolean isValid = baseFile.valid();
                     if (isValid) {
                         // 添加到文件列表
@@ -82,7 +82,7 @@ public class BaseFileQueue {
                 // 创建一个新的存储文件
                 String name = fileNameGenerator.generator();
                 File file = new File(storeConfig.getBlockPath() + File.pathSeparator + name);
-                BaseFile baseFile = new BaseFile(file);
+                BaseFile baseFile = new BaseFile(file, 0, 0);
                 // 添加到文件列表
                 fileTable.put(file.getName(), baseFile);
             }

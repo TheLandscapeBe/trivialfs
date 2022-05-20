@@ -1,9 +1,19 @@
 trivialfs:
-  volume:
-    type: ZOOKEEPER
-    zkConfig:
-      addresses: 127.0.0.1:2181
-      sessionTimeoutMs: 3000
-      connectionTimeoutMs: 3000
-      retryBaseSleepTimeMs: 3000
-      maxRetryTime: 3
+  # TCP服务端配置
+  serverConfig:
+    host: 127.0.0.1
+    listenPort: 41235
+    serverWorkerThreads: 8
+    serverSelectorThreads: 3
+    serverChannelMaxIdleTimeSeconds: 120
+    serverSocketSndBufSize: 65535
+    serverSocketRcvBufSize: 65535
+    useTLS: false
+    tlsFile:
+  coordinateType: ZOOKEEPER
+  zkConfig:
+    addresses: 127.0.0.1:2181
+    sessionTimeoutMs: 3000
+    connectionTimeoutMs: 3000
+    retryBaseSleepTimeMs: 3000
+    maxRetryTime: 3

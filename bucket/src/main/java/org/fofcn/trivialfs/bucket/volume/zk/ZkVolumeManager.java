@@ -1,20 +1,26 @@
 package org.fofcn.trivialfs.bucket.volume.zk;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.zookeeper.data.Stat;
-import org.fofcn.trivialfs.bucket.config.BucketConfig;
-import org.fofcn.trivialfs.bucket.config.ZkClientConfig;
-import org.fofcn.trivialfs.bucket.constant.BucketConstant;
-import org.fofcn.trivialfs.bucket.volume.StoreNode;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.curator.framework.api.transaction.CuratorOp;
+import org.apache.curator.framework.api.transaction.TransactionOp;
+import org.fofcn.trivialfs.coordinate.constant.BucketConstant;
+import org.fofcn.trivialfs.coordinate.StoreNode;
 import org.fofcn.trivialfs.bucket.volume.VolumeManager;
-import org.fofcn.trivialfs.netty.util.StringUtil;
+import org.fofcn.trivialfs.bucket.volume.lb.LoadBalance;
+import org.fofcn.trivialfs.bucket.volume.lb.impl.VolumeRoundRobinLoadBalance;
+import org.fofcn.trivialfs.coordinate.exception.CoordinateException;
+import org.fofcn.trivialfs.coordinate.zk.ZkClient;
+import org.fofcn.trivialfs.coordinate.zk.ZkClientConfig;
+import org.fofcn.trivialfs.netty.util.ArrayUtil;
+import org.fofcn.trivialfs.netty.util.NetworkSerializable;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Volume manager based on zookeeper.
@@ -25,71 +31,247 @@ import java.util.List;
 @Slf4j
 public class ZkVolumeManager implements VolumeManager {
 
-    private final CuratorFramework zkClient;
+    private final ZkClient zkClient;
 
-    private final ZkClientConfig zkClientConfig;
+    private final ConcurrentHashMap<String, LoadBalance<StoreNode>> lbTable = new ConcurrentHashMap<>(16);
+
+    private final ReentrantLock mainLock = new ReentrantLock();
 
     public ZkVolumeManager(final ZkClientConfig zkClientConfig) {
-        this.zkClientConfig = zkClientConfig;
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(zkClientConfig.getRetryBaseSleepTimeMs(),
-                zkClientConfig.getMaxRetryTime());
-        this.zkClient = CuratorFrameworkFactory.newClient(zkClientConfig.getAddresses(), retryPolicy);
+        this.zkClient = new ZkClient(zkClientConfig);
     }
 
     @Override
     public boolean init() {
-        zkClient.start();
-
+        zkClient.init();
         // check if root bucket name is existing
         // if exists do nothing
         // else create root bucket
-        Stat rootStat = null;
+        boolean root = false;
         try {
-            rootStat = zkClient.checkExists().forPath(BucketConstant.ROOT_PATH);
-            if (rootStat == null) {
-                String str = zkClient.create().forPath(BucketConstant.ROOT_PATH, BucketConstant.ROOT_PATH.getBytes(StandardCharsets.UTF_8));
-                if (StringUtil.isEmpty(str)) {
-                    log.error("error create root path: <{}>", str);
-                    return false;
-                }
-
-                log.info("create root path: <{}>", str);
+            root = zkClient.createIfNotExisting(BucketConstant.ROOT_PATH);
+            if (!root) {
+                log.error("error create root path: <{}>", BucketConstant.ROOT_PATH);
                 return false;
             }
-        } catch (Exception e) {
-            log.error("check root bucket path error", e);
+            log.info("create root path: <{}>", BucketConstant.ROOT_PATH);
+            return true;
+
+        } catch (CoordinateException e) {
+            log.info("Initialize coordinate error.", e);
         }
 
-        return true;
-    }
-
-    @Override
-    public void start() {
-
-    }
-
-    @Override
-    public void shutdown() {
-        zkClient.close();
-    }
-
-    @Override
-    public boolean create(String name) {
         return false;
     }
 
     @Override
-    public List<StoreNode> getReadableNode(String name) {
-        return null;
+    public void start() {
+        zkClient.start();
     }
 
     @Override
-    public List<StoreNode> getWritableNode(String name) {
-        return null;
+    public void shutdown() {
+        zkClient.shutdown();
     }
 
     @Override
-    public StoreNode getNodeByFileKey(String name, String fileKey) {
-        return null;
+    public boolean create(String name) {
+        // create bucket with transactional operations
+        try {
+            String readableName = String.format(BucketConstant.STORE_CLUSTER_READABLE_FMT, name);
+            String writableName = String.format(BucketConstant.STORE_CLUSTER_WRITABLE_FMT, name);
+            zkClient.mkDirs(readableName, writableName);
+        } catch (CoordinateException e) {
+            log.error("error create bucket, name: <{}>", name, e);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean delete(String name) {
+        String path = buildBucketPath(name);
+        try {
+            zkClient.deleteParent(path);
+        } catch (CoordinateException e) {
+            log.error("delete path error.", e);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public Optional<StoreNode> getReadableNode(String name) {
+        return doGeNode(name, BucketConstant.STORE_CLUSTER_READABLE_FMT);
+    }
+
+    @Override
+    public Optional<StoreNode> getWritableNode(String name) {
+        return doGeNode(name, BucketConstant.STORE_CLUSTER_WRITABLE_FMT);
+    }
+
+    @Override
+    public Optional<StoreNode> getNodeByFileKey(String name, String fileKey) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public boolean addWritableNode(String name, StoreNode storeNode) {
+        // use distribute lock
+        String bucketPath = buildBucketPath(name);
+        if (zkClient.lock(bucketPath)) {
+            try {
+                // check node if existing, if existing we do nothing and return true
+                // otherwise we will create a node
+                String writablePath = buildWritablePath(name, storeNode.getPeerId());
+                String readablePath = buildReadablePath(name, storeNode.getPeerId());
+                boolean readableExists = zkClient.exists(readablePath);
+                boolean writableExists = zkClient.exists(writablePath);
+                byte[] nodeData = NetworkSerializable.jsonEncode(storeNode);
+                // start a transaction
+                List<CuratorOp> transOpList = new ArrayList<>(2);
+                TransactionOp trans = zkClient.createTransaction();
+
+                // if writable node exists, we will update its node data;
+                // otherwise we should create the node and set node data.
+                if (!writableExists) {
+                    zkClient.mkDirs(writablePath);
+                }
+                CuratorOp upDataOp = zkClient.transUpData(trans, writablePath, nodeData);
+                transOpList.add(upDataOp);
+
+                // if readable node exists, we should delete the readable node;
+                // otherwise we do nothing.
+                if (readableExists) {
+                    CuratorOp readableOp = zkClient.transDel(trans, readablePath);
+                    transOpList.add(readableOp);
+                }
+
+                // commit the transaction
+                return zkClient.executeTrans(transOpList);
+            } catch (CoordinateException e) {
+                log.error("Add writable store node error. ", e);
+            } finally {
+                try {
+                    zkClient.unlock(bucketPath);
+                } catch (CoordinateException ignore) {
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean addReadableNode(String name, StoreNode storeNode) {
+        // use distribute lock
+        String bucketPath = buildBucketPath(name);
+        if (zkClient.lock(bucketPath)) {
+            try {
+                // check node if existing, if existing we do nothing and return true
+                // otherwise we will create a node
+                String writablePath = buildWritablePath(name, storeNode.getPeerId());
+                String readablePath = buildReadablePath(name, storeNode.getPeerId());
+                boolean readableExists = zkClient.exists(readablePath);
+                boolean writableExists = zkClient.exists(writablePath);
+                byte[] nodeData = NetworkSerializable.jsonEncode(storeNode);
+                // start a transaction
+                List<CuratorOp> transOpList = new ArrayList<>(2);
+                TransactionOp trans = zkClient.createTransaction();
+
+                // if readable node exists, we will update its node data;
+                // otherwise we should create the node and set node data.
+                if (!readableExists) {
+                    zkClient.mkDirs(readablePath);
+                }
+
+                CuratorOp upDataOp = zkClient.transUpData(trans, readablePath, nodeData);
+                transOpList.add(upDataOp);
+
+                // if readable node exists, we should delete the readable node;
+                // otherwise we do nothing.
+                if (writableExists) {
+                    CuratorOp readableOp = zkClient.transDel(trans, writablePath);
+                    transOpList.add(readableOp);
+                }
+
+                // commit the transaction
+                return zkClient.executeTrans(transOpList);
+            } catch (CoordinateException e) {
+                log.error("Add writable store node error.", e);
+            } finally {
+                try {
+                    zkClient.unlock(bucketPath);
+                } catch (CoordinateException ignore) {
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private Optional<List<StoreNode>> getStoreNodes(String path) {
+        List<StoreNode> storeNodeList = null;
+        try {
+            Optional<List<String>> nodeList = zkClient.getChildren(path);
+            if (!nodeList.isPresent()) {
+                return Optional.empty();
+            }
+
+            storeNodeList = new ArrayList<>();
+            for (String node : nodeList.get()) {
+                String nodePath = path + '/' + node;
+                byte[] nodeData = zkClient.getNodeData(nodePath);
+                if (ArrayUtil.isEmpty(nodeData)) {
+                    log.warn("Data of the node:<{}> is empty.", nodePath);
+                    continue;
+                } else {
+                    StoreNode storeNode = NetworkSerializable.jsonDecode(nodeData, StoreNode.class);
+                    storeNodeList.add(storeNode);
+                }
+            }
+        } catch (CoordinateException e) {
+            log.error("Get store node error.", e);
+        }
+
+        return CollectionUtils.isEmpty(storeNodeList) ? Optional.empty() : Optional.of(storeNodeList);
+    }
+
+    private String buildWritablePath(String name, String peerId) {
+        return String.format(BucketConstant.STORE_CLUSTER_WRITABLE_NODE_FMT, name, peerId);
+    }
+
+    private String buildReadablePath(String name, String peerId) {
+        return String.format(BucketConstant.STORE_CLUSTER_READABLE_NODE_FMT, name, peerId);
+    }
+
+    private String buildBucketPath(String name) {
+        return String.format(BucketConstant.STORE_CLUSTER_FMT, name);
+    }
+
+    private Optional<StoreNode> doGeNode(String name, String storeClusterFmt) {
+        StoreNode selected = null;
+        LoadBalance<StoreNode> lb = null;
+        mainLock.lock();
+        try {
+            if (!lbTable.contains(name)) {
+                String readableName = String.format(storeClusterFmt, name);
+                Optional<List<StoreNode>> nodeList = getStoreNodes(readableName);
+                if (nodeList.isPresent()) {
+                    LoadBalance<StoreNode> newLb = new VolumeRoundRobinLoadBalance(nodeList.get());
+                    lb = lbTable.putIfAbsent(name, newLb);
+                    if (lb == null) {
+                        lb = newLb;
+                    }
+                } else {
+                    return Optional.empty();
+                }
+            }
+        } finally {
+            mainLock.unlock();
+        }
+
+        selected = lb.selectOne();
+        return selected == null ? Optional.empty() : Optional.of(selected);
     }
 }

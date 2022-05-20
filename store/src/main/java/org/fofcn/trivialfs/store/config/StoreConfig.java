@@ -95,4 +95,8 @@ public class StoreConfig {
     @JsonProperty
     private SnowFlakeConfig uidConfig;
 
+    /**
+     * bucket server configure
+     */
+    private BucketConfig bucketConfig;
 }

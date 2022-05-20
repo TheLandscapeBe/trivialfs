@@ -23,6 +23,11 @@
             <artifactId>proto</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.fofcn</groupId>
+            <artifactId>coordinate</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.fofcn</groupId>

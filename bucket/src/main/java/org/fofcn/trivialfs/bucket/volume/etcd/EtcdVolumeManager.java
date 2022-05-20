@@ -1,9 +1,9 @@
 package org.fofcn.trivialfs.bucket.volume.etcd;
 
-import org.fofcn.trivialfs.bucket.volume.StoreNode;
+import org.fofcn.trivialfs.coordinate.StoreNode;
 import org.fofcn.trivialfs.bucket.volume.VolumeManager;
 
-import java.util.List;
+import java.util.Optional;
 
 /**
  * volume manager based on etcd.
@@ -18,19 +18,35 @@ public class EtcdVolumeManager implements VolumeManager {
     }
 
     @Override
-    public List<StoreNode> getReadableNode(String name) {
-        return null;
+    public boolean delete(String name) {
+        return false;
     }
 
     @Override
-    public List<StoreNode> getWritableNode(String name) {
-        return null;
+    public Optional<StoreNode> getReadableNode(String name) {
+        return Optional.empty();
     }
 
     @Override
-    public StoreNode getNodeByFileKey(String name, String fileKey) {
-        return null;
+    public Optional<StoreNode> getWritableNode(String name) {
+        return Optional.empty();
     }
+
+    @Override
+    public Optional<StoreNode> getNodeByFileKey(String name, String fileKey) {
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean addWritableNode(String name, StoreNode storeNode) {
+        return false;
+    }
+
+    @Override
+    public boolean addReadableNode(String name, StoreNode storeNode) {
+        return false;
+    }
+
 
     @Override
     public boolean init() {
