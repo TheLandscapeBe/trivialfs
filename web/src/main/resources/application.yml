@@ -5,7 +5,7 @@ spring:
       master:
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.jdbc.Driver
-        url: jdbc:mysql://trivialfs.fofcn.com:3306/trivialfs_db?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
+        url: jdbc:mysql://trivialfs.fofcn.com:3306/trivialfs_db?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8&connectionTimeZone=GMT+8
         username: trivialfs_user
         password: Yy123456.
         initialSize: 5
@@ -27,7 +27,7 @@ spring:
       slave0:
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.jdbc.Driver
-        url: jdbc:mysql://trivialfs.fofcn.com:3306/trivialfs_db0?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
+        url: jdbc:mysql://trivialfs.fofcn.com:3306/trivialfs_db0?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8&connectionTimeZone=GMT+8
         username: trivialfs_user
         password: Yy123456.
         initialSize: 5
